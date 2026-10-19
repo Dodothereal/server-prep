@@ -696,7 +696,7 @@ step_update() {
         note "already up to date"
     fi
     pkg_install sudo curl wget git jq openssl ca-certificates gnupg ufw unattended-upgrades apt-listchanges \
-        libpam-pwquality chrony lsof || return 1
+        libpam-pwquality cracklib-runtime chrony lsof || return 1
     if [[ "$(timedatectl show -p Timezone --value 2>/dev/null)" != "$TIMEZONE" ]]; then
         run timedatectl set-timezone "$TIMEZONE" && { changed; note "timezone ${TIMEZONE}"; }
     fi
@@ -1307,7 +1307,7 @@ step_auth() {
     create 0600 root root
 }
 EOF
-    pkg_install libpam-pwquality || return 1
+    pkg_install libpam-pwquality cracklib-runtime || return 1
     local f=/etc/security/pwquality.conf
     set_kv "$f" minlen 12
     set_kv "$f" dcredit -1
@@ -1318,6 +1318,20 @@ EOF
     set_kv "$f" difok 4
     set_kv "$f" usercheck 1
     note "password policy: 12+ chars, upper/lower/digit/symbol"
+    # The dictionary check needs a built cracklib dictionary, otherwise every password
+    # change fails with "BAD PASSWORD: ... error loading dictionary"
+    local dict=/var/cache/cracklib/cracklib_dict.pwd
+    if [[ ! -f $dict ]]; then
+        run update-cracklib
+        [[ -f $dict || $DRY_RUN -eq 1 ]] || run apt-get install "${APT_OPTS[@]}" --reinstall cracklib-runtime
+        if [[ -f $dict || $DRY_RUN -eq 1 ]]; then
+            changed; note "password dictionary built (update-cracklib)"
+        else
+            set_kv "$f" dictcheck 0
+            note "password dictionary missing: dictionary check turned off so passwords can still be changed"
+            todo "Build the password dictionary: sudo apt install --reinstall cracklib-runtime && sudo update-cracklib, then remove 'dictcheck = 0' from $f"
+        fi
+    fi
     return 0
 }
 

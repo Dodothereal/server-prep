@@ -606,6 +606,19 @@ else
     result acc.password_policy PASS "Password policy" "minlen=${MINLEN}, enforced by pam_pwquality"
 fi
 
+if [[ $PAM_PWQ -eq 1 ]]; then
+    if [[ -f /var/cache/cracklib/cracklib_dict.pwd ]]; then
+        result acc.password_dict PASS "Password dictionary" "cracklib dictionary present: password changes work"
+    elif cat /etc/security/pwquality.conf /etc/security/pwquality.conf.d/*.conf 2>/dev/null \
+            | grep -qE '^[[:space:]]*dictcheck[[:space:]]*=[[:space:]]*0'; then
+        result acc.password_dict INFO "Password dictionary" "cracklib dictionary missing, dictionary check off (dictcheck = 0)" \
+            "apt install --reinstall cracklib-runtime && update-cracklib"
+    else
+        result acc.password_dict FAIL "Password dictionary" "cracklib dictionary missing: every password change fails (error loading dictionary)" \
+            "apt install --reinstall cracklib-runtime && update-cracklib"
+    fi
+fi
+
 UID0=$(awk -F: '$3==0 && $1!="root"{print $1}' /etc/passwd | tr '\n' ' ')
 if [[ -n "$UID0" ]]; then
     result acc.uid0 FAIL "UID 0 accounts" "Accounts other than root with UID 0: ${UID0}" "Remove or re-number them"

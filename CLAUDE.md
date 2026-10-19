@@ -55,6 +55,7 @@ Your infrastructure goes in **`CLAUDE.local.md`**: panel host, Tailscale and adm
 | `log_martians` back to 0 after reboot | `/etc/ufw/sysctl.conf` overrides it: the sysctl step rewrites that file |
 | `fs.suid_dumpable=2` after reboot | apport forces it: `apport` is in `DISABLE_SERVICES` |
 | `--config` re-run did not disable a newly added service | Saved configs keep their old `DISABLE_SERVICES`. Tell the user to edit `/etc/server-prep/server-prep.conf` or run the command by hand |
+| `passwd`: "BAD PASSWORD: ... error loading dictionary" (`cracklib_dict.pwd: No such file`) | `--no-install-recommends` skipped `cracklib-runtime`. The update and auth steps install it, and auth runs `update-cracklib` if the dictionary is still missing (last resort: `dictcheck = 0` + todo). Audit: `acc.password_dict` |
 | SUID scan floods with container files | `find` prunes `/var/lib/docker` and `/var/lib/containerd` |
 | `docker ps` cannot reach `~/.docker/desktop/docker.sock` | Docker Desktop context: `docker context use default`, or remove Docker Desktop |
 | CrowdSec `console enroll` returns 401 while `capi status` is OK | The problem is on CrowdSec's side. Retry later or enroll from the web console |

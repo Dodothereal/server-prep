@@ -78,7 +78,7 @@ Run part of it only: `--only ssh,firewall` / `--skip aide,endlessh` (`--list-ste
 | `ips` | fail2ban (sshd jail on the right port) + CrowdSec with firewall bouncer (INPUT + DOCKER-USER), panel/admin IPs whitelisted, LAPI moved off 8080 |
 | `unattended` | daily security updates (+ Docker CE), optional auto-reboot |
 | `sysctl` | ~30 kernel/network parameters, rare protocols blacklisted (Docker/Tailscale compatible) |
-| `auth` | sudo log file (`/var/log/sudo.log`), pwquality minlen 12 + complexity |
+| `auth` | sudo log file (`/var/log/sudo.log`), pwquality minlen 12 + complexity, password dictionary built (`cracklib-runtime`) so `passwd` works |
 | `services` | disable avahi, cups, bluetooth, ModemManager; mask Ctrl-Alt-Del; optional headless boot |
 | `laptop` | laptop used as a server: ignore lid close, mask sleep/suspend |
 | `logging` | persistent journald (1 GB cap), swap file if none |

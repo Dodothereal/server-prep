@@ -3,6 +3,11 @@
 Highlights of each release. The full list of merged pull requests is in each
 [GitHub release](https://github.com/exceev-consulting/server-prep/releases).
 
+## [Unreleased]
+
+- Fix: changing a password failed with "BAD PASSWORD: ... error loading dictionary". The `update` and `auth`
+  steps now install `cracklib-runtime` and build the password dictionary. New audit check `acc.password_dict`.
+
 ## [1.1.0] - 2026-10-19
 
 First public release.
