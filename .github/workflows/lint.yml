@@ -1,0 +1,27 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Syntax
+        run: bash -n server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh
+
+      - name: ShellCheck
+        run: |
+          command -v shellcheck >/dev/null || sudo apt-get install -y shellcheck
+          shellcheck --version | sed -n 2p
+          shellcheck -S warning server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh
+
+      - name: Help output
+        run: for s in server-prep.sh server-preconfig.sh server-audit.sh; do ./"$s" --help >/dev/null; done

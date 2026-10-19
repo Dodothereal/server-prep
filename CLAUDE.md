@@ -41,7 +41,8 @@ Your infrastructure goes in **`CLAUDE.local.md`**: panel host, Tailscale and adm
 - **Checks after editing:**
   - Syntax: `bash -n server-prep.sh server-audit.sh`.
   - Dry run: `sudo ./server-prep.sh --config <test.conf> --dry-run --only <step>`. The user has to run it, since it needs sudo.
-  - `shellcheck` is not installed.
+  - Lint: `shellcheck -S warning server-*.sh extras/github-runners/*.sh`. CI runs it on every push and PR (`.github/workflows/lint.yml`), so keep it clean. It is not installed locally: download the static binary from the ShellCheck releases into the scratchpad.
+  - Releases: bump `PREP_VERSION`, add a `CHANGELOG.md` section, push a `vX.Y.Z` tag. `.github/workflows/release.yml` checks the version and publishes the release (see CONTRIBUTING.md).
 
 ## Hard-won gotchas (do not regress)
 

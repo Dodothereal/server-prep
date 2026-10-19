@@ -1,0 +1,81 @@
+name: Bug report
+description: Something did not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Remove secrets before posting**: tokens, private keys, passwords. Replace real IPs and hostnames if you prefer.
+        A security problem (port left open, root login allowed, lockout...)? Use [Report a vulnerability](https://github.com/exceev-consulting/server-prep/security/advisories/new) instead.
+  - type: dropdown
+    id: script
+    attributes:
+      label: Script
+      options:
+        - server-prep.sh
+        - server-preconfig.sh
+        - server-audit.sh
+        - extras
+        - docs
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: First line of `./server-prep.sh --help`, or the commit you use
+      placeholder: v1.1.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: Ubuntu 24.04, Debian 13...
+    validations:
+      required: true
+  - type: dropdown
+    id: server
+    attributes:
+      label: Server type
+      options:
+        - VPS
+        - Dedicated / bare-metal (rented)
+        - Own server (office, home)
+        - Laptop or desktop used as a server
+        - VM for testing
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: panel
+    attributes:
+      label: Panel
+      placeholder: Coolify, Dokploy, Openship, none...
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      render: shell
+      placeholder: sudo ./server-prep.sh --only firewall
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or log
+      description: The error lines, or the end of `/var/log/server-prep/run-<date>.log`
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: I removed tokens, keys and passwords from this report
+          required: true

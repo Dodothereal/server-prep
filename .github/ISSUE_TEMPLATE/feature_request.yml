@@ -1,0 +1,42 @@
+name: Idea or feature request
+description: A new step, check, panel or option
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve?
+      placeholder: When I set up a server on ..., I have to ... by hand.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What server-prep should do. Commands or config examples help.
+    validations:
+      required: true
+  - type: dropdown
+    id: script
+    attributes:
+      label: Script
+      options:
+        - server-prep.sh
+        - server-preconfig.sh
+        - server-audit.sh
+        - extras
+        - docs
+        - not sure
+  - type: input
+    id: env
+    attributes:
+      label: OS, server type and panel
+      placeholder: Debian 13, dedicated server, Dokploy
+  - type: dropdown
+    id: pr
+    attributes:
+      label: Would you like to send a pull request?
+      options:
+        - "Yes"
+        - Maybe, with some help
+        - "No"

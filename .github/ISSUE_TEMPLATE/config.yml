@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or help
+    url: https://github.com/exceev-consulting/server-prep/discussions
+    about: Ask how to use server-prep, or share your setup
+  - name: Security problem
+    url: https://github.com/exceev-consulting/server-prep/security/advisories/new
+    about: Report a vulnerability privately

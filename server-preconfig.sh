@@ -112,7 +112,7 @@ detect() {
 }
 
 iface_mode() {   # static|dhcp|manual|... for $IFACE in ifupdown files, empty if not configured
-    grep -hsE "^[[:space:]]*iface[[:space:]]+$IFACE[[:space:]]+inet[[:space:]]" \
+    grep -hsE "^[[:space:]]*iface[[:space:]]+${IFACE}[[:space:]]+inet[[:space:]]" \
         /etc/network/interfaces /etc/network/interfaces.d/* 2>/dev/null | awk '{print $4; exit}'
 }
 
@@ -350,7 +350,7 @@ run_checks() {
             ok "$IFACE saved as $mode${saved:+ ($saved)}"
             [[ $mode == static && -n $saved && $saved != "${CUR_CIDR}" && $saved != "${CUR_CIDR%/*}" ]] && warn "$IFACE now has $CUR_CIDR but $saved is saved: it changes at reboot"
         fi
-        sources_dir || [[ $(grep -cE "^[[:space:]]*iface[[:space:]]+$IFACE[[:space:]]" /etc/network/interfaces) -gt 0 ]] || fail "/etc/network/interfaces does not include interfaces.d"
+        sources_dir || [[ $(grep -cE "^[[:space:]]*iface[[:space:]]+${IFACE}[[:space:]]" /etc/network/interfaces) -gt 0 ]] || fail "/etc/network/interfaces does not include interfaces.d"
         [[ "$(systemctl is-enabled networking 2>/dev/null)" == enabled ]] && ok "networking enabled at boot" || fail "networking not enabled: systemctl enable networking"
     else
         ok "network managed by $NET_MANAGER"

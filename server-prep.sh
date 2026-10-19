@@ -984,8 +984,12 @@ step_ssh() {
         fi
         note "WARNING: ${ADMIN_USER} has no SSH key"
     fi
-    if [[ -n "$(ls /etc/ssh/sshd_config.d/ 2>/dev/null | grep -v '00-server-prep.conf')" ]]; then
-        note "other drop-ins present ($(ls /etc/ssh/sshd_config.d/ | grep -v 00-server-prep.conf | tr '\n' ' ')) - 00-server-prep.conf is read first and wins"
+    local others=() f
+    for f in /etc/ssh/sshd_config.d/*; do
+        [[ -e $f && ${f##*/} != 00-server-prep.conf ]] && others+=("${f##*/}")
+    done
+    if [[ ${#others[@]} -gt 0 ]]; then
+        note "other drop-ins present (${others[*]}) - 00-server-prep.conf is read first and wins"
     fi
 
     local need_two=0 p

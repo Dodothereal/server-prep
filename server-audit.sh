@@ -378,11 +378,11 @@ fi
 
 # UFW port matching: is PORT/PROTO allowed from "Anywhere"? echo any|restricted|none
 ufw_port_access() {
-    local port="$1" proto="$2" line to action from spec p best="none"
+    local port="$1" proto="$2" line to from spec p best="none"
     [[ $UFW_ACTIVE -eq 1 && -n "$UFW_STATUS" ]] || { echo "nofw"; return; }
     while IFS= read -r line; do
         [[ "$line" =~ ^(.+[^[:space:]])[[:space:]]{2,}(ALLOW|LIMIT)[[:space:]]+(IN[[:space:]]+)?(.+)$ ]] || continue
-        to="${BASH_REMATCH[1]}"; action="${BASH_REMATCH[2]}"; from="${BASH_REMATCH[4]}"
+        to="${BASH_REMATCH[1]}"; from="${BASH_REMATCH[4]}"
         [[ "$line" == *"FWD"* ]] && continue
         to="${to% (v6)}"; from="${from% (v6)}"
         local iface=""

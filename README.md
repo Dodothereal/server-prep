@@ -1,5 +1,9 @@
 # server-prep
 
+[![lint](https://github.com/exceev-consulting/server-prep/actions/workflows/lint.yml/badge.svg)](https://github.com/exceev-consulting/server-prep/actions/workflows/lint.yml)
+[![release](https://img.shields.io/github/v/release/exceev-consulting/server-prep)](https://github.com/exceev-consulting/server-prep/releases/latest)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Secure a new Debian/Ubuntu server, a **VPS** or a **dedicated** machine (rented or in your office),
 and get it ready for a self-hosted PaaS panel
 ([Coolify](https://coolify.io), [Dokploy](https://dokploy.com), [Openship](https://openship.io/)... any panel
@@ -47,6 +51,9 @@ sudo ./server-audit.sh                 # 1. see where you stand (changes nothing
 sudo ./server-prep.sh --dry-run        # 2. preview every change
 sudo ./server-prep.sh                  # 3. apply (interactive questions)
 ```
+
+Or download the scripts from the [latest release](https://github.com/exceev-consulting/server-prep/releases/latest)
+and check them with `sha256sum -c SHA256SUMS`.
 
 For a client server, reuse a config file:
 
@@ -145,6 +152,15 @@ Exit code is `1` when at least one check FAILs (handy in CI/cron).
 - Add your SSH key **before** the SSH step: password login gets disabled.
 - `--dry-run` changes nothing; every step can be re-run safely.
 - Docker restarts only after confirmation (running containers restart with it).
+
+## Contributing
+
+Help is welcome: tests on other providers and hardware, bug reports, support for more panels, clearer docs.
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md): how to test and the rules for the scripts.
+- Questions in [Discussions](https://github.com/exceev-consulting/server-prep/discussions), bugs and ideas in [Issues](https://github.com/exceev-consulting/server-prep/issues).
+- Security problems: report them privately, see [SECURITY.md](SECURITY.md).
+- Everyone follows the [Code of Conduct](CODE_OF_CONDUCT.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Credits
 

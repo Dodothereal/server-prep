@@ -1,0 +1,53 @@
+name: release
+
+# Push a tag like v1.2.0 to publish a release. Notes = the CHANGELOG.md section for
+# that version + the merged pull requests (grouped by label, see .github/release.yml).
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Tag matches the script version
+        run: |
+          ver=$(sed -n 's/^PREP_VERSION="\(.*\)"/\1/p' server-prep.sh)
+          if [ "v$ver" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME but server-prep.sh has PREP_VERSION=$ver"
+            exit 1
+          fi
+
+      - name: Lint
+        run: |
+          command -v shellcheck >/dev/null || sudo apt-get install -y shellcheck
+          bash -n server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh
+          shellcheck -S warning server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh
+
+      - name: Release files
+        run: |
+          mkdir dist
+          cp server-prep.sh server-preconfig.sh server-audit.sh server-prep.conf.example dist/
+          (cd dist && sha256sum -- * > SHA256SUMS)
+
+      - name: Notes from CHANGELOG.md
+        run: |
+          awk -v v="${GITHUB_REF_NAME#v}" '
+            /^## \[/ { if (found) exit; found = (index($0, "[" v "]") > 0); next }
+            found' CHANGELOG.md > notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=(--verify-tag --title "server-prep $GITHUB_REF_NAME" --generate-notes)
+          if [ -s notes.md ]; then args+=(--notes-file notes.md); fi
+          if [[ $GITHUB_REF_NAME == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" "${args[@]}" dist/*
