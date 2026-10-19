@@ -1,0 +1,59 @@
+# server-prep.conf - settings for a non-interactive run:
+#   sudo ./server-prep.sh --config server-prep.conf --yes
+# Copy this file, fill it in, and NEVER commit the filled copy (it is in .gitignore).
+# Every value is optional; the interactive mode asks for each of them.
+# Older configs with COOLIFY_PUBKEY / COOLIFY_ACCESS / COOLIFY_IP still work.
+
+# --- Admin account -----------------------------------------------------------
+ADMIN_USER="admin"                       # created if missing (sudo group)
+ADMIN_PUBKEY="ssh-ed25519 AAAA... you@laptop"   # your public key (strongly recommended)
+
+# --- Deployment panel (Coolify, Dokploy, Openship...) ------------------------
+PANEL="coolify"                          # name used in messages/report; empty = none
+# Public part of the SSH key the panel uses for servers
+#   (Coolify: Keys & Tokens -> Private Keys -> (your key) -> Public Key)
+PANEL_PUBKEY="ssh-ed25519 AAAA... panel"
+# How the panel server reaches this server (comma list): cloudflared, tailscale, public
+#   root login is allowed ONLY from the matching sources:
+#   cloudflared -> 127.0.0.1/::1 (tunnel), tailscale -> 100.64.0.0/10, public -> PANEL_IP
+PANEL_ACCESS="cloudflared"
+PANEL_IP=""                              # panel server public IP, required with "public"
+CLOUDFLARED_TOKEN=""                     # tunnel token (Zero Trust -> Networks -> Tunnels)
+
+# --- SSH & firewall ----------------------------------------------------------
+SSH_PORT="822"                           # < 1024 and != 22 passes the audit
+ADMIN_IPS=""                             # IPs/CIDRs allowed to SSH, e.g. "203.0.113.4 192.168.1.0/24"
+EXPOSE_WEB="no"                          # yes = open 80/443 to the internet (no when using the tunnel)
+EXTRA_PORTS=""                           # e.g. "8000/tcp 5432/tcp"
+
+# --- Protection --------------------------------------------------------------
+INSTALL_FAIL2BAN="yes"
+INSTALL_CROWDSEC="yes"
+CROWDSEC_ENROLL_KEY=""                   # optional, from https://app.crowdsec.net
+CROWDSEC_LAPI_PORT="8091"                # default 8080 conflicts with Traefik dashboards
+INSTALL_DOCKER="yes"                     # install if missing + log rotation + UFW integration
+DOCKER_AUTO_UPDATE="yes"                 # Docker CE in unattended-upgrades
+AUTO_REBOOT="no"                         # reboot automatically when updates need it
+AUTO_REBOOT_TIME="04:00"
+
+# --- Services ----------------------------------------------------------------
+DISABLE_SERVICES="avahi-daemon cups cups-browsed bluetooth ModemManager apport"
+HEADLESS="no"                            # desktop machines: boot without the GUI
+LAPTOP_MODE="auto"                       # auto|yes|no - ignore lid close, disable sleep
+
+# --- Monitoring extras -------------------------------------------------------
+INSTALL_AUDITD="yes"
+INSTALL_RKHUNTER="yes"
+INSTALL_AIDE="yes"
+INSTALL_ENDLESSH="yes"                   # tarpit on 22 once SSH has moved
+INSTALL_TELEGRAF="yes"                   # InfluxDB metrics agent, installed from InfluxData repo, left stopped
+TELEGRAM_ENABLE="no"
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_CHAT_ID=""
+TELEGRAM_IGNORE_USERS="root"             # the panel logs in as root all the time
+
+# --- Misc --------------------------------------------------------------------
+TIMEZONE="Europe/Paris"
+SWAP_SIZE="2G"                           # created only if the server has no swap
+PTRACE_SCOPE="2"                         # 3 = stricter, cannot be lowered until reboot
+AUDIT_URL=""                             # raw URL of server-audit.sh for single-file installs

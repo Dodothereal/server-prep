@@ -1,0 +1,15 @@
+# Local context (copy to CLAUDE.local.md, which is gitignored, and fill in)
+
+## Infrastructure
+
+- **Panel** (`PANEL=coolify|dokploy|...`): host `<panel-host>`, Tailscale IP `<100.x.y.z>`. Servers are added as `root`, port **822**, with the panel key.
+- **Typical answers**:
+  - `PANEL_ACCESS=tailscale`, `SSH_PORT=822`, `EXPOSE_WEB=no`.
+  - `ADMIN_IPS="<office LAN CIDR> <office public IP> <home public IP>"`.
+- **Monitoring**: Telegraf → InfluxDB v2 (one bucket per server) → Grafana.
+
+## Servers
+
+| Host | Where | Access | Notes |
+|---|---|---|---|
+| `<name>` | `<site>` | Tailscale `<100.x>`, LAN `<ip/prefix>` | |

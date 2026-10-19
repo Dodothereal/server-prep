@@ -1,0 +1,70 @@
+# server-prep - context for Claude
+
+Bash tooling to secure new Debian/Ubuntu servers (cloud VPS or dedicated / on-premise) and prepare them for a self-hosted PaaS panel (Coolify, Dokploy, Openship...), then prove it with an audit.
+
+- `server-preconfig.sh`: first step on a fresh server, before server-prep. It sets up SSH + sudo, the hostname, a network saved for reboots, no sleep and Tailscale, and ends with a reboot-readiness check (`--check`). Guide: `server-preconfig.md`.
+- `server-prep.sh`: interactive or config-driven security setup. It is idempotent, backs up every file it touches and writes a report.
+- `server-audit.sh`: read-only audit (a rework of vps-audit). Exits with 1 if any check FAILs.
+- `server-prep.conf.example`: every setting. Filled copies are gitignored because they contain keys.
+- `extras/`: helpers that are not steps (Telegraf output template, GitHub runner memory cap).
+- `.claude/skills/`: guided workflows. Use `/new-server`, `/audit-review`, `/monitoring` and `/add-step`.
+
+## Site-specific context
+
+Your infrastructure goes in **`CLAUDE.local.md`**: panel host, Tailscale and admin IPs, servers, usual answers. That file is gitignored and loaded automatically by Claude Code. Create it from `CLAUDE.local.md.example`. Read it before guiding a setup.
+
+## How to work with the operator
+
+- They run every command themselves with sudo, because Claude has no sudo. Give **copy-paste commands**, one block per step, and say what output to expect.
+- During interactive runs, guide them **question by question: short, concise, precise**. Give the answer to type, then one line on why.
+- After they paste output, analyse it: say what is OK, what is noise and what needs fixing.
+- Never print or store tokens or keys: the InfluxDB token, the CrowdSec enroll key, Tailscale keys, the Telegram bot token.
+
+## Script conventions (read before editing)
+
+- **No side effects on import:**
+  - Every change goes through `run` (dry-run aware), `write_file`, `set_kv` or `backup_file`.
+  - Packages are installed with `pkg_install`, which installs only what is missing.
+  - Services are disabled with `svc_disable`.
+- **Steps:**
+  - A step is `step_<name>()`. It returns `$SKIP_RC` when disabled and records results with `note` / `changed` / `todo`.
+  - Steps are registered in `ALL_STEPS` and in the `run_step` list. `/add-step` gives the full checklist.
+- **apt:**
+  - Always use `"${APT_OPTS[@]}"`, which includes `DPkg::Lock::Timeout=600`.
+  - Fresh servers run apt in the background at boot.
+- **Third-party repos:**
+  - Download the key, **verify its fingerprint**, and dearmor it to `/etc/apt/keyrings/`.
+  - Add a `signed-by` source.
+  - Add an apt **pin at priority 900**. Ubuntu Pro ESM (priority 510) otherwise wins with old versions.
+- **Panel-agnostic:** the panel is `PANEL` / `PANEL_PUBKEY` / `PANEL_ACCESS` / `PANEL_IP` (old `COOLIFY_*` names are mapped at load). Messages use `${PANEL_LABEL}`. Panel-specific behaviour must be guarded by `[[ ${PANEL,,} == <name> ]]`.
+- **Changes need matching updates in:** `server-prep.conf.example`, the README step table, and an audit check (INFO when optional).
+- **Checks after editing:**
+  - Syntax: `bash -n server-prep.sh server-audit.sh`.
+  - Dry run: `sudo ./server-prep.sh --config <test.conf> --dry-run --only <step>`. The user has to run it, since it needs sudo.
+  - `shellcheck` is not installed.
+
+## Hard-won gotchas (do not regress)
+
+| Problem | Fix in place |
+|---|---|
+| Install fails with "dpkg lock held" on a fresh server | `DPkg::Lock::Timeout=600` in `APT_OPTS` and on `apt-get update` |
+| Ubuntu 26.04 uses **sudo-rs**: `visudo` rejects `Defaults logfile` | Detect sudo-rs and skip the sudo logfile (it logs to the journal). The audit counts it as PASS |
+| CrowdSec 1.4.x installed from Ubuntu Pro ESM | Pin `crowdsec*` to packagecloud.io at 900, then upgrade if the version string contains ubuntu/deb/esm |
+| CrowdSec LAPI on 8080 conflicts with Traefik dashboards (Coolify, Dokploy) | `CROWDSEC_LAPI_PORT=8091` |
+| `log_martians` back to 0 after reboot | `/etc/ufw/sysctl.conf` overrides it: the sysctl step rewrites that file |
+| `fs.suid_dumpable=2` after reboot | apport forces it: `apport` is in `DISABLE_SERVICES` |
+| `--config` re-run did not disable a newly added service | Saved configs keep their old `DISABLE_SERVICES`. Tell the user to edit `/etc/server-prep/server-prep.conf` or run the command by hand |
+| SUID scan floods with container files | `find` prunes `/var/lib/docker` and `/var/lib/containerd` |
+| `docker ps` cannot reach `~/.docker/desktop/docker.sock` | Docker Desktop context: `docker context use default`, or remove Docker Desktop |
+| CrowdSec `console enroll` returns 401 while `capi status` is OK | The problem is on CrowdSec's side. Retry later or enroll from the web console |
+| GitHub runners OOM-killed the laptop | `extras/github-runners/limit-runners-memory.sh`: a slice capped at 40% of RAM, about 3G per runner |
+| Coolify: the panel loses the server right after setting up cloudflared | The server-level **Cloudflare Tunnel** option in Coolify switches SSH to the tunnel hostname. For apps, deploy cloudflared as a **Service** resource. Keep the server IP = its Tailscale IP and the toggle off |
+| Telegraf `--test` shows "permission denied" on disk mounts | Harmless (docker/gvfs/netns mounts). Optionally extend `ignore_fs` in `[[inputs.disk]]` |
+
+## Expected audit result on a prepared host
+
+- **Score:** about 43 PASS, 0 FAIL.
+- **Normal WARNs:**
+  - Many running services on a desktop (GNOME).
+  - Pending regular, non-security updates.
+  - Kernel reboot pending right after an upgrade.

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -n:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(./server-prep.sh --list-steps)",
+      "Bash(./server-prep.sh --help)",
+      "Bash(./server-audit.sh --help)",
+      "Bash(systemctl status:*)",
+      "Bash(systemctl is-active:*)",
+      "Bash(systemctl is-enabled:*)",
+      "Bash(systemctl show:*)",
+      "Bash(journalctl:*)",
+      "Bash(tailscale status:*)",
+      "Bash(tailscale ip:*)"
+    ],
+    "deny": [
+      "Read(./*.conf)",
+      "Read(/etc/default/telegraf)",
+      "Read(/etc/telegraf/telegraf.d/**)",
+      "Bash(git push --force:*)"
+    ]
+  }
+}

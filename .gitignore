@@ -1,0 +1,29 @@
+# Reports contain hostnames, IPs and server details
+*-report-*.txt
+*-report-*.md
+server-audit-*
+audit.md
+audit.json
+audit.tsv
+server-prep-report-*.md
+*.log
+
+# Filled configs may contain keys and tokens
+*.conf
+!server-prep.conf.example
+
+# Local Claude Code context (infrastructure, IPs) and settings
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Secrets
+.env
+*.pem
+*.key
+
+# OS / editor files
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
