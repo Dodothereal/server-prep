@@ -366,7 +366,7 @@ if have docker && systemctl is-active --quiet docker 2>/dev/null; then
             DOCKER_PROTECTED=0
             if [[ $UFW_ACTIVE -eq 1 ]]; then
                 result fw.docker_bypass FAIL "Docker vs firewall" "Published container ports bypass UFW (no DOCKER-USER filtering)" \
-                    "Add the ufw-docker rules to /etc/ufw/after.rules (server-prep.sh does it)"
+                    "sudo ./server-prep.sh --config /etc/server-prep/server-prep.conf --only firewall --yes (installs the ufw-docker rules)"
             else
                 result fw.docker_bypass WARN "Docker vs firewall" "No DOCKER-USER filtering (and no active firewall)"
             fi

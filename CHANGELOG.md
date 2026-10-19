@@ -7,6 +7,9 @@ Highlights of each release. The full list of merged pull requests is in each
 
 - Fix: changing a password failed with "BAD PASSWORD: ... error loading dictionary". The `update` and `auth`
   steps now install `cracklib-runtime` and build the password dictionary. New audit check `acc.password_dict`.
+- **Security fix:** on a server where Docker was already running, the ufw-docker rules were skipped, so published
+  container ports (80/443...) still bypassed UFW. The firewall step now always applies them and checks they are loaded.
+  Re-run it on servers set up with 1.1.0: `sudo ./server-prep.sh --config /etc/server-prep/server-prep.conf --only firewall --yes`.
 
 ## [1.1.0] - 2026-10-19
 

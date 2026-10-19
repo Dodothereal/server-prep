@@ -849,12 +849,25 @@ ufw_docker_rules() {   # make published container ports obey UFW (DOCKER-USER ch
         fi
     fi
     if [[ $DRY_RUN -eq 1 ]]; then info "[dry-run] ufw-docker install && systemctl restart ufw"; return 0; fi
-    "$bin" check >/dev/null 2>&1 && return 0          # rules already up to date
+    # Don't use 'ufw-docker check': it exits 0 even when the rules are missing. 'install' only
+    # rewrites the files when they differ, so compare them before and after, and check the live chain.
+    local before after
+    before=$(cat /etc/ufw/after.rules /etc/ufw/after6.rules 2>/dev/null | sha256sum)
     backup_file /etc/ufw/after.rules; backup_file /etc/ufw/after6.rules
     if ! "$bin" install >>"$LOG_FILE" 2>&1; then warn "ufw-docker install failed (see $LOG_FILE)"; return 1; fi
+    after=$(cat /etc/ufw/after.rules /etc/ufw/after6.rules 2>/dev/null | sha256sum)
+    if [[ $before == "$after" ]] && iptables -S DOCKER-USER 2>/dev/null | grep -q -- '-j ufw-user-forward'; then
+        return 0                                        # rules written and loaded
+    fi
     run systemctl restart ufw
-    changed
-    note "DOCKER-USER rules installed by ufw-docker: published container ports now obey UFW"
+    if iptables -S DOCKER-USER 2>/dev/null | grep -q -- '-j ufw-user-forward'; then
+        changed
+        note "DOCKER-USER rules installed by ufw-docker: published container ports now obey UFW"
+    else
+        warn "ufw-docker rules written but not loaded"
+        todo "Docker ports still bypass UFW: run 'sudo systemctl restart ufw', then 'sudo iptables -S DOCKER-USER' must show ufw-user-forward"
+        return 1
+    fi
 }
 
 ufw_allow_ssh() {   # ufw_allow_ssh PORT COMMENT
@@ -909,7 +922,11 @@ step_firewall() {
     fi
 
     # Stop Docker from bypassing UFW. ufw-docker needs UFW active, so this runs after enable
-    [[ $HAS_DOCKER -eq 1 ]] && ufw_docker_rules
+    if [[ $HAS_DOCKER -eq 1 ]]; then
+        ufw_docker_rules
+    else
+        todo "Docker is not installed yet. If your panel installs it later, run: sudo ./server-prep.sh --config /etc/server-prep/server-prep.conf --only firewall --yes (so container ports obey UFW)"
+    fi
     changed
     return 0
 }
