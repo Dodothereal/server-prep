@@ -16,7 +16,7 @@
 set -u   # no pipefail: "cmd | grep -q" would turn SIGPIPE into false negatives
 shopt -s lastpipe   # "... | write_file" must run in this shell to record changes
 
-PREP_VERSION="1.1.0"
+PREP_VERSION="1.1.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TS="$(date +%Y%m%d_%H%M%S)"
 HOST_SHORT="$(hostname -s)"

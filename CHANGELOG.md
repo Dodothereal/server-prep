@@ -5,6 +5,8 @@ Highlights of each release. The full list of merged pull requests is in each
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-19
+
 - Fix: changing a password failed with "BAD PASSWORD: ... error loading dictionary". The `update` and `auth`
   steps now install `cracklib-runtime` and build the password dictionary. New audit check `acc.password_dict`.
 - **Security fix:** on a server where Docker was already running, the ufw-docker rules were skipped, so published
