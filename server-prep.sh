@@ -95,22 +95,48 @@ Usage: sudo $0 [options]
   --list-steps         print the step names
   -h, --help           this help
 
+Exit codes:
+  0  every selected step completed (or was skipped)
+  1  a step failed, or the run stopped early (not root, unsupported OS, aborted, invalid settings)
+  2  command-line usage error, including an unknown --only or --skip name
+
 Steps: ${ALL_STEPS}
 EOF
 }
 
+invalid_steps() {   # invalid_steps NAMES...: print names not in ALL_STEPS
+    local name
+    for name in "$@"; do
+        [[ " $ALL_STEPS " == *" $name "* ]] || printf '%s\n' "$name"
+    done
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --config) CONFIG_FILE="$2"; shift 2 ;;
+        --config) [[ $# -ge 2 ]] || { echo "--config needs a value" >&2; exit 2; }; CONFIG_FILE="$2"; shift 2 ;;
         --yes|-y) ASSUME_YES=1; INTERACTIVE=0; shift ;;
         --dry-run) DRY_RUN=1; shift ;;
-        --only) ONLY="${2//,/ }"; shift 2 ;;
-        --skip) SKIP="${2//,/ }"; shift 2 ;;
+        --only) [[ $# -ge 2 ]] || { echo "--only needs a value" >&2; exit 2; }; ONLY="${2//,/ }"; shift 2 ;;
+        --skip) [[ $# -ge 2 ]] || { echo "--skip needs a value" >&2; exit 2; }; SKIP="${2//,/ }"; shift 2 ;;
         --list-steps) echo "$ALL_STEPS"; exit 0 ;;
         -h|--help) usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     esac
 done
+
+check_step_names() {   # check_step_names NAMES...
+    local bad_steps
+    bad_steps="$(invalid_steps "$@" | paste -sd ' ' -)"
+    if [[ -n "$bad_steps" ]]; then
+        echo "Unknown step: ${bad_steps}" >&2
+        echo "Valid steps: ${ALL_STEPS}" >&2
+        exit 2
+    fi
+}
+
+read -ra parsed_only <<< "$ONLY"
+read -ra parsed_skip <<< "$SKIP"
+check_step_names "${parsed_only[@]}" "${parsed_skip[@]}"
 
 if [[ -n "$CONFIG_FILE" ]]; then
     [[ -r "$CONFIG_FILE" ]] || { echo "Cannot read $CONFIG_FILE" >&2; exit 2; }
@@ -121,6 +147,9 @@ fi
 PANEL_PUBKEY="${PANEL_PUBKEY:-${COOLIFY_PUBKEY:-}}"
 PANEL_ACCESS="${PANEL_ACCESS:-${COOLIFY_ACCESS:-}}"
 PANEL_IP="${PANEL_IP:-${COOLIFY_IP:-}}"
+read -ra parsed_only <<< "$ONLY"
+read -ra parsed_skip <<< "$SKIP"
+check_step_names "${parsed_only[@]}" "${parsed_skip[@]}"
 [[ -z "$PANEL" && -n "${COOLIFY_PUBKEY:-}${COOLIFY_ACCESS:-}" ]] && PANEL=coolify
 set_panel_label() {   # display name used in questions, notes and the report
     case "${PANEL,,}" in
@@ -1871,7 +1900,7 @@ main() {
     write_report
 
     title "Done"
-    local i
+    local i result
     for i in "${!STEP_NAMES[@]}"; do
         printf '  %-36s %s\n' "${STEP_NAMES[$i]}" "${STEP_RESULTS[$i]}"
     done
@@ -1883,6 +1912,15 @@ main() {
         echo; echo "${C_Y}  To do by hand:${C_0}"
         for i in "${MANUAL_TODO[@]}"; do echo "   - $i"; done
     fi
+
+    for result in "${STEP_RESULTS[@]}"; do
+        [[ "$result" == "FAILED" ]] && return 1
+    done
+    return 0
 }
 
-main "$@"
+# Run only when executed, so the test can load the functions without starting a run.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+    exit $?
+fi

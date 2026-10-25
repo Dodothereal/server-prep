@@ -61,6 +61,11 @@ Prefer a download? Get the scripts from the [latest release](https://github.com/
 and check them with `sha256sum -c SHA256SUMS`. To prepare many servers the same way, fill a copy of
 [server-prep.conf.example](server-prep.conf.example) and run `sudo ./server-prep.sh --config web-01.conf --yes`.
 
+Run part of it only: `--only ssh,firewall` / `--skip aide,endlessh` (`--list-steps` prints the names).
+An unknown step name is refused. Exit 0 means every selected step completed or was skipped. Exit 1 means
+a step failed or the run stopped early (not root, unsupported OS, aborted, or invalid settings). Exit 2 is
+a command-line usage error, including an unknown step name or a missing option value.
+
 ## Documentation
 
 | Guide | What it covers |
