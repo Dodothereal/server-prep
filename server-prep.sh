@@ -17,7 +17,11 @@ set -u   # no pipefail: "cmd | grep -q" would turn SIGPIPE into false negatives
 shopt -s lastpipe   # "... | write_file" must run in this shell to record changes
 
 PREP_VERSION="1.1.1"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+# Only look for a sibling audit when running from a file, not stdin or bash -c.
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 TS="$(date +%Y%m%d_%H%M%S)"
 HOST_SHORT="$(hostname -s)"
 
@@ -396,7 +400,7 @@ preflight() {
     [[ -z "$TIMEZONE" ]] && TIMEZONE="$(timedatectl show -p Timezone --value 2>/dev/null || echo UTC)"
 
     if [[ -z "$AUDIT_SCRIPT" ]]; then
-        for c in "$SCRIPT_DIR/server-audit.sh" /usr/local/sbin/server-audit; do
+        for c in ${SCRIPT_DIR:+"$SCRIPT_DIR/server-audit.sh"} /usr/local/sbin/server-audit; do
             [[ -f "$c" ]] && { AUDIT_SCRIPT="$c"; break; }
         done
     fi

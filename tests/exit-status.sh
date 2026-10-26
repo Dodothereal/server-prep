@@ -31,21 +31,34 @@ expect_usage_error "Unknown step: firewal" --config "$tmp/config"
 # A glob in a step name is reported literally, not expanded to local filenames.
 expect_usage_error "Unknown step: *" --only '*'
 
-# stdin and bash -c have no BASH_SOURCE[0]. Help must not emit an unbound-variable
-# error during initialization. These exit before main, so they cannot touch the host.
-expect_help() {   # expect_help LABEL COMMAND...
-    local label="$1" out status=0
-    shift
-    out="$("$@" 2>"$tmp/stderr")" || status=$?
-    if [[ "$status" -ne 0 || "$out" != *"Exit codes:"* || -s "$tmp/stderr" ]]; then
-        printf 'not ok: %s help exited %s or emitted an error\n' "$label" "$status"
+# Observe the real initialization without entering preflight or running an audit.
+# A test-only EXIT trap records SCRIPT_DIR when --help exits. In particular, stdin
+# and bash -c must not treat the current folder (or an arbitrary $0) as a sibling.
+cat > "$tmp/check-script-dir" <<'EOF'
+trap 'printf "SCRIPT_DIR=%s\n" "${SCRIPT_DIR-<unset>}" > "$SCRIPT_DIR_RESULT"' EXIT
+EOF
+expect_help() {   # expect_help LABEL WANT_SCRIPT_DIR COMMAND...
+    local label="$1" want_dir="$2" out status=0
+    shift 2
+    : > "$tmp/script-dir"
+    out="$(BASH_ENV="$tmp/check-script-dir" SCRIPT_DIR_RESULT="$tmp/script-dir" "$@" 2>"$tmp/stderr")" || status=$?
+    if [[ "$status" -ne 0 || "$out" != *"Exit codes:"* || -s "$tmp/stderr" ||
+          "$(cat "$tmp/script-dir")" != "SCRIPT_DIR=$want_dir" ]]; then
+        printf 'not ok: %s help exited %s, emitted an error or used the wrong script folder\n' "$label" "$status"
         cat "$tmp/stderr" >&2
+        cat "$tmp/script-dir" >&2
         exit 1
     fi
-    printf 'ok: %s help exits 0 without errors\n' "$label"
+    printf 'ok: %s help exits 0 without errors and uses the expected script folder\n' "$label"
 }
-expect_help stdin bash -s -- --help < "$SCRIPT"
-expect_help 'bash -c' bash -c "$(cat "$SCRIPT")" server-prep.sh --help
+expect_help file "$SCRIPT_DIR" bash "$SCRIPT" --help
+expect_help stdin '' bash -s -- --help < "$SCRIPT"
+expect_help 'bash -c' '' bash -c "$(cat "$SCRIPT")" server-prep.sh --help
+expect_help 'bash -c with a file as $0' '' bash -c "$(cat "$SCRIPT")" "$SCRIPT" --help
+expect_help sourced "$SCRIPT_DIR" bash -c '. "$1" --help' _ "$SCRIPT"
+mkdir "$tmp/script dir"
+cp "$SCRIPT" "$tmp/script dir/server-prep.sh"
+expect_help 'file path with spaces' "$tmp/script dir" bash "$tmp/script dir/server-prep.sh" --help
 
 # Load the real functions without starting a run, then replace the calls that
 # touch the host. --yes also avoids requiring a terminal when sourcing in CI.
