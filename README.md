@@ -1,4 +1,4 @@
-# server-prep
+# <picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg"><img src=".github/assets/logo.svg" width="44" height="44" align="top" alt=""></picture> server-prep
 
 [![lint](https://github.com/exceev-consulting/server-prep/actions/workflows/lint.yml/badge.svg)](https://github.com/exceev-consulting/server-prep/actions/workflows/lint.yml)
 [![release](https://img.shields.io/github/v/release/exceev-consulting/server-prep)](https://github.com/exceev-consulting/server-prep/releases/latest)
@@ -11,6 +11,10 @@ that connects to servers over SSH with a key).
 A security check runs before and after, so you see exactly what changed.
 
 Built and maintained by [Exceev Consulting](https://exceev.com).
+
+**See what it does for your setup:** the [setup console](https://exceev-consulting.github.io/server-prep/)
+shows, for a VPS or a dedicated server and for your panel, the ports it opens or closes, who can log in,
+every step, the commands to run in order and a ready config file.
 
 | Script | What it does |
 |---|---|
@@ -132,6 +136,14 @@ With the Cloudflare Tunnel, add these public hostnames in Zero Trust:
 |---|---|
 | `extras/telegraf/telegraf.conf.example` | complete Telegraf config: system + Docker metrics to InfluxDB v2, secrets read from `/etc/default/telegraf`, optional Cloudflare Access headers ([guide](docs/monitoring.md)) |
 | `extras/github-runners/limit-runners-memory.sh` | caps self-hosted GitHub runners to 40% of RAM (systemd slice): `sudo ./limit-runners-memory.sh [30%] [--remove]` |
+
+## Setup console (site/)
+
+`site/index.html` is a static page, published with GitHub Pages by `.github/workflows/pages.yml`.
+Its data (`site/data.json`, `site/data.js`) is generated from the scripts, this README and
+`server-prep.conf.example` by `scripts/gen-data.sh`. CI fails when the data is out of date, so after changing
+a step, a setting or an audit check, run `scripts/gen-data.sh` (needs `jq`) and commit the result.
+Open it locally with `python3 -m http.server --bind 127.0.0.1 -d site 8000` and go to http://localhost:8000.
 
 ## Working with Claude Code
 

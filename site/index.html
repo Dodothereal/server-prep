@@ -1,0 +1,1270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>server-prep Setup Console</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="See exactly what server-prep does to secure a Debian or Ubuntu VPS or dedicated server for Coolify, Dokploy or Openship: ports, logins, steps, commands and the audit.">
+<meta property="og:title" content="server-prep Setup Console">
+<meta property="og:description" content="Pick your server, panel and access route. See the ports, who can log in, the commands to run and the config file.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a rack console. A dark rack-front hero with the audit proof and headline numbers,
+   then the setup console (control panel left, live dashboard + faceplate + terminal right),
+   the steps as numbered rack units, the audit chart, and reference tables. */
+:root {
+  --bg: #EEF1F4;
+  --panel: #FFFFFF;
+  --panel-2: #F7F9FB;
+  --sunken: #F2F5F8;
+  --ink: #0F161E;
+  --ink-2: #4A5664;
+  --ink-3: #66727F;
+  --rule: #D8DEE5;
+  --rule-2: #E6EAEF;
+  --accent: #0B1117;
+  --accent-2: #111820;
+  --accent-soft: #E9EDF1;
+  --on-accent: #FFFFFF;
+  --brand: #0B1117;
+  --on-brand: #FFFFFF;
+  --ok: #186C3B;
+  --ok-soft: #E0F1E6;
+  --warn: #8A5409;
+  --warn-soft: #F7EBD5;
+  --bad: #A93224;
+  --bad-soft: #F7E0DB;
+  --off: #6F7B88;
+  /* audit severity ramp (one hue, ordinal, validated against --panel) */
+  --sev-info: #7D8794;
+  --sev-warn: #4B5563;
+  --sev-fail: #111820;
+  /* rack hardware: dark in both themes on purpose */
+  --rack: #0B1117;
+  --rack-2: #111A23;
+  --rack-edge: #223040;
+  --rack-ink: #E6EDF3;
+  --rack-dim: #9AA8B6;
+  --rack-ok: #55C78C;
+  --rack-warn: #E3A64E;
+  --rack-bad: #FF8069;
+  --plate: #141B23;
+  --plate-edge: #2A3440;
+  --plate-ink: #D8E0E9;
+  --plate-dim: #9AA6B4;
+  --led-ok: #3BD17F;
+  --led-only: #6FA4FF;
+  --led-warn: #F2B13B;
+  --led-off: #4D5967;
+  --code-bg: #0E151D;
+  --code-bar: #151F2A;
+  --code-ink: #D9E2EC;
+  --code-dim: #8B98A7;
+  --code-ln: #7A8796;
+  --code-key: #C9D3DE;
+  --rack-hi: #F4F7FA;
+  --rack-mid: #B9C3CE;
+  --ear: #1A232D;
+  --jack: #05080B;
+  --screw-hi: #8B97A4;
+  --screw-lo: #3A4552;
+  --shadow: 0 1px 2px rgba(15, 22, 30, .05), 0 10px 30px -14px rgba(15, 22, 30, .18);
+  --shadow-lift: 0 2px 4px rgba(15, 22, 30, .06), 0 22px 48px -20px rgba(15, 22, 30, .28);
+  --f-display: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-lg: 14px;
+  --r: 10px;
+  --r-sm: 6px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 72px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0F14; --panel: #121920; --panel-2: #151D25; --sunken: #0E141A; --ink: #E3E9EF; --ink-2: #A0ACB9; --ink-3: #8794A2;
+    --rule: #25303B; --rule-2: #1D2731; --accent: #F4F7FA; --accent-2: #E3E9EF; --accent-soft: #1E2731; --on-accent: #0A0F14;
+    --brand: #F4F7FA; --on-brand: #0B1117; --ok: #55C78C; --ok-soft: #11281C; --warn: #E3A64E; --warn-soft: #2D2212; --bad: #FF8069; --bad-soft: #33170F; --off: #7A8694;
+    --sev-info: #6E7987; --sev-warn: #A9B3BF; --sev-fail: #F4F7FA;
+    --rack: #070B0F; --rack-2: #0E151C; --rack-edge: #1F2B37;
+    --plate: #070B0F; --plate-edge: #222C37; --plate-dim: #8D9AA9; --led-off: #3E4955;
+    --code-bg: #070B0F; --code-bar: #0F161E;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -14px rgba(0, 0, 0, .6);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, .45), 0 22px 48px -20px rgba(0, 0, 0, .75);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0F14; --panel: #121920; --panel-2: #151D25; --sunken: #0E141A; --ink: #E3E9EF; --ink-2: #A0ACB9; --ink-3: #8794A2;
+  --rule: #25303B; --rule-2: #1D2731; --accent: #F4F7FA; --accent-2: #E3E9EF; --accent-soft: #1E2731; --on-accent: #0A0F14;
+  --brand: #F4F7FA; --on-brand: #0B1117; --ok: #55C78C; --ok-soft: #11281C; --warn: #E3A64E; --warn-soft: #2D2212; --bad: #FF8069; --bad-soft: #33170F; --off: #7A8694;
+  --sev-info: #6E7987; --sev-warn: #A9B3BF; --sev-fail: #F4F7FA;
+  --rack: #070B0F; --rack-2: #0E151C; --rack-edge: #1F2B37;
+  --plate: #070B0F; --plate-edge: #222C37; --plate-dim: #8D9AA9; --led-off: #3E4955;
+  --code-bg: #070B0F; --code-bar: #0F161E;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -14px rgba(0, 0, 0, .6);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, .45), 0 22px 48px -20px rgba(0, 0, 0, .75);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.6 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero :focus-visible, .term :focus-visible, .file :focus-visible, .rackunit :focus-visible, .two .code :focus-visible { outline-color: var(--rack-hi); }
+code, pre, kbd { font-family: var(--f-mono); }
+code { font-size: .86em; background: var(--sunken); border: 1px solid var(--rule); border-radius: 5px; padding: 1px 5px; overflow-wrap: anywhere; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+h1, h2 { font-family: var(--f-display); font-weight: 700; line-height: 1.02; letter-spacing: .002em; }
+h2 { font-size: clamp(30px, 4vw, 42px); }
+h3 { font: 600 18px/1.3 var(--f-body); letter-spacing: -.005em; }
+p { margin: 0; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: -60px; z-index: 40; background: var(--accent); color: var(--on-accent); padding: 8px 12px; border-radius: 6px; font-weight: 600; text-decoration: none; }
+.skip:focus { top: 8px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 600 13px/1 var(--f-display); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 2px; background: var(--accent); }
+.lead { font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 64ch; }
+.muted { color: var(--ink-2); }
+.num { font-variant-numeric: tabular-nums; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: var(--r-lg); box-shadow: var(--shadow); min-width: 0; }
+
+/* ---------- top bar ---------- */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--panel) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--rule); }
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); padding-block: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.logo { display: block; flex: none; color: var(--brand); }
+.brand .logo { width: 28px; height: 28px; }
+.brand b { font: 600 16px/1 var(--f-mono); letter-spacing: -.02em; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 12px/1 var(--f-mono); padding: 5px 8px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--sunken); white-space: nowrap; }
+.topnav { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.topnav a { color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: 14px; padding: 6px 10px; border-radius: 8px; }
+.topnav a:hover { color: var(--ink); background: var(--sunken); }
+.topnav a[aria-current="true"] { color: var(--accent); background: var(--accent-soft); }
+.tbtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink-2); font: 500 13px/1 var(--f-body); cursor: pointer; text-decoration: none; }
+.tbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+@media (max-width: 860px) { .topnav a.sec { display: none; } }
+@media (max-width: 600px) {
+  .brand .chip { display: none; }
+  .tlabel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .topnav { flex-wrap: nowrap; gap: 6px; }
+}
+
+/* ---------- hero (rack front, dark on purpose) ---------- */
+.hero { position: relative; background: var(--rack); color: var(--rack-ink); overflow: hidden; isolation: isolate; }
+.hero::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .55;
+  background:
+    radial-gradient(900px 380px at 82% 10%, rgba(255, 255, 255, .07), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 43px, rgba(255, 255, 255, .035) 43px 44px); }
+.hero::after { content: ""; position: absolute; top: 0; bottom: 0; left: max(8px, calc(50% - 640px)); width: 12px; z-index: -1;
+  background: radial-gradient(circle at 6px 22px, rgba(255,255,255,.14) 2.5px, transparent 3px) 0 0 / 12px 44px repeat-y; }
+.hero .hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--s7); padding-block: var(--s8) var(--s6); align-items: center; }
+.hero .eyebrow { color: var(--rack-dim); }
+.hero .eyebrow::before { background: var(--rack-hi); }
+.hero h1 { font-size: clamp(42px, 6.6vw, 76px); line-height: 1.06; color: var(--rack-mid); margin-top: var(--s4); }
+.hero h1 em { font-style: normal; color: #FFFFFF; text-decoration: underline; text-decoration-color: #FFFFFF; text-decoration-thickness: .07em; text-underline-offset: .14em; text-decoration-skip-ink: none; }
+.hero .lead { color: var(--rack-dim); margin-top: var(--s4); }
+.cta { display: flex; gap: var(--s3); flex-wrap: wrap; margin-top: var(--s5); }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font: 600 15px/1 var(--f-body); text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+.btn.primary { background: var(--rack-hi); color: var(--rack); }
+.btn.primary:hover { background: #FFFFFF; box-shadow: 0 0 0 4px rgba(255, 255, 255, .14); }
+.btn.ghost { color: var(--rack-ink); border-color: var(--rack-edge); background: rgba(255,255,255,.03); }
+.btn.ghost:hover { border-color: var(--rack-dim); }
+.hero .tested { margin-top: var(--s4); font-size: 13px; color: var(--rack-dim); }
+.proof { background: linear-gradient(180deg, var(--rack-2), var(--rack)); border: 1px solid var(--rack-edge); border-radius: var(--r-lg); padding: var(--s5); display: grid; gap: var(--s4); box-shadow: 0 30px 60px -30px rgba(0,0,0,.8); min-width: 0; }
+.proof-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+.proof-head .eyebrow::before { background: var(--led-ok); }
+.proof h2 { font: 600 20px/1.25 var(--f-body); color: var(--rack-ink); }
+.score { display: grid; gap: 10px; padding: var(--s4); border-radius: var(--r); background: rgba(255,255,255,.03); border: 1px solid var(--rack-edge); }
+.score-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); flex-wrap: wrap; font-size: 13.5px; color: var(--rack-dim); }
+.score-top b { font: 600 28px/1 var(--f-body); color: var(--rack-ink); }
+.score-top b small { font-size: 15px; color: var(--rack-dim); font-weight: 500; }
+.sbar { display: flex; gap: 2px; height: 12px; }
+.sbar i { display: block; height: 100%; }
+.sbar i:first-child { border-radius: 4px 0 0 4px; }
+.sbar i:last-child { border-radius: 0 4px 4px 0; }
+.sbar .p { background: var(--rack-ok); }
+.sbar .w { background: var(--rack-warn); }
+.sbar .f { background: var(--rack-bad); }
+.slegend { display: flex; gap: var(--s4); flex-wrap: wrap; font-size: 12.5px; color: var(--rack-dim); }
+.slegend span { display: inline-flex; align-items: center; gap: 6px; }
+.slegend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; }
+.slegend .p::before { background: var(--rack-ok); }
+.slegend .w::before { background: var(--rack-warn); }
+.slegend .f::before { background: var(--rack-bad); }
+.after { display: flex; gap: var(--s4); align-items: center; padding: var(--s4); border-radius: var(--r); background: rgba(85, 199, 140, .08); border: 1px solid rgba(85, 199, 140, .25); }
+.after .big { font: 700 44px/1 var(--f-body); color: var(--rack-ok); letter-spacing: -.02em; white-space: nowrap; }
+.after p { font-size: 13.5px; color: var(--rack-dim); }
+.after p b { color: var(--rack-ink); font-weight: 600; }
+.formula { font-size: 12.5px; color: var(--rack-dim); }
+.formula code { background: rgba(255,255,255,.06); border-color: var(--rack-edge); color: var(--rack-ink); }
+.kpis-hero { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: var(--s6); background: var(--rack-edge); border: 1px solid var(--rack-edge); border-radius: var(--r-lg); overflow: hidden; }
+.kpis-hero > div { background: var(--rack); padding: var(--s4) var(--s5); display: grid; gap: 4px; min-width: 0; }
+.kpis-hero .lbl { font: 600 12px/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--rack-dim); }
+.kpis-hero .val { font: 600 32px/1.05 var(--f-body); color: var(--rack-ink); letter-spacing: -.02em; }
+.kpis-hero .cap { font-size: 12.5px; color: var(--rack-dim); line-height: 1.4; }
+.hero-wrap-kpi { padding-bottom: var(--s7); }
+
+/* ---------- sections ---------- */
+section.block { padding-block: var(--s8) var(--s7); }
+section.block + section.block { border-top: 1px solid var(--rule); }
+.block-head { display: grid; gap: var(--s3); margin-bottom: var(--s6); max-width: 72ch; }
+
+/* ---------- console ---------- */
+.console { display: grid; grid-template-columns: minmax(0, 350px) minmax(0, 1fr); gap: var(--s5); align-items: start; }
+.controls { padding: var(--s5); display: grid; gap: var(--s5); position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow: auto; overscroll-behavior: contain; }
+.controls-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); padding-bottom: var(--s4); border-bottom: 1px solid var(--rule-2); }
+.controls-head h3 { font-size: 16px; }
+.reset { font: 500 13px/1 var(--f-body); color: var(--ink-2); background: none; border: 0; cursor: pointer; padding: 4px; text-decoration: underline; text-underline-offset: 3px; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--s2); min-width: 0; }
+fieldset:disabled .opt span { cursor: not-allowed; opacity: .75; }
+legend { padding: 0; margin-bottom: 6px; font: 600 12px/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.seg { display: grid; gap: 6px; }
+.seg.cols-2 { grid-template-columns: 1fr 1fr; }
+.opt { position: relative; display: block; }
+.opt input { position: absolute; opacity: 0; inset: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; z-index: 1; }
+.opt span { position: relative; display: grid; gap: 2px; padding: 10px 12px 10px 38px; border: 1px solid var(--rule); border-radius: 9px; background: var(--panel-2); cursor: pointer; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.opt span::before { content: ""; position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--off); background: var(--panel); }
+.opt input[type="checkbox"] + span::before { border-radius: 4px; }
+.opt span b { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.opt span small { font-size: 12.5px; color: var(--ink-2); line-height: 1.4; }
+.opt input:hover + span { border-color: var(--ink-3); }
+.opt input:checked + span { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+.opt input[type="radio"]:checked + span::before { border-color: var(--accent); background: var(--panel); box-shadow: inset 0 0 0 4px var(--accent); }
+.opt input[type="checkbox"]:checked + span::before { border-color: var(--accent); background: var(--accent); }
+.opt input[type="checkbox"]:checked + span::after { content: ""; position: absolute; left: 18px; top: 14px; width: 4px; height: 8px; border: solid var(--on-accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.field { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.field label { font: 600 12px/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.field input[type="text"] { font: 400 14px/1.4 var(--f-mono); padding: 10px 12px; border: 1px solid var(--off); border-radius: 9px; background: var(--panel-2); color: var(--ink); width: 100%; min-width: 0; transition: border-color .15s, box-shadow .15s; }
+.field input[type="text"]:focus { outline: 2px solid transparent; outline-offset: 2px; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.field input[type="text"]::placeholder { color: var(--ink-2); }
+.hint { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+
+.outputs { display: grid; gap: var(--s5); min-width: 0; }
+
+/* live KPI dashboard */
+.dash { padding: var(--s5); display: grid; gap: var(--s4); }
+.dash-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+.dash-head p { font-size: 13px; color: var(--ink-2); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s3); }
+@media (max-width: 1320px) and (min-width: 1081px), (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { border: 1px solid var(--rule-2); background: var(--panel-2); border-radius: var(--r); padding: 14px 14px 12px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.kpi .lbl { font: 600 12px/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.kpi .val { display: flex; align-items: baseline; gap: 6px; font: 600 30px/1 var(--f-body); letter-spacing: -.02em; color: var(--ink); }
+.kpi .val small { font-size: 15px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
+.kpi .cap { font-size: 12.5px; color: var(--ink-2); line-height: 1.4; overflow-wrap: anywhere; }
+.st { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px/1.2 var(--f-body); justify-self: start; padding: 3px 8px 3px 6px; border-radius: 999px; }
+.st.ok { color: var(--ok); background: var(--ok-soft); }
+.st.warn { color: var(--warn); background: var(--warn-soft); }
+.st.bad { color: var(--bad); background: var(--bad-soft); }
+.st svg.i { width: 14px; height: 14px; }
+.meter { height: 6px; border-radius: 999px; background: var(--accent-soft); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 999px; background: var(--accent-2); transition: width .3s ease; }
+
+.alerts { display: grid; gap: var(--s2); }
+.alerts:empty { display: none; }
+.alert { display: flex; gap: var(--s3); align-items: flex-start; padding: var(--s3) var(--s4); border-radius: var(--r); font-size: 14px; line-height: 1.5; border: 1px solid; }
+.alert svg.i { margin-top: 2px; }
+.alert b { font: 700 13px/1.5 var(--f-display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.alert.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+.alert.warn svg, .alert.warn b { color: var(--warn); }
+.alert.bad { background: var(--bad-soft); border-color: color-mix(in srgb, var(--bad) 30%, transparent); }
+.alert.bad svg, .alert.bad b { color: var(--bad); }
+.alert.info { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+.alert.info svg, .alert.info b { color: var(--accent); }
+
+/* faceplate with rack ears */
+.rackunit { display: grid; grid-template-columns: 22px minmax(0, 1fr) 22px; border-radius: var(--r-lg); background: var(--plate-edge); padding: 1px; box-shadow: var(--shadow-lift); }
+.ear { background: linear-gradient(90deg, var(--ear), var(--plate)); display: grid; align-content: space-between; justify-items: center; padding-block: 18px; }
+.ear:first-child { border-radius: calc(var(--r-lg) - 1px) 0 0 calc(var(--r-lg) - 1px); }
+.ear:last-child { border-radius: 0 calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0; }
+.ear i { width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--screw-hi), var(--screw-lo) 70%); box-shadow: 0 0 0 2px var(--rack); }
+.plate { background: var(--plate); color: var(--plate-ink); padding: var(--s4) var(--s5) var(--s5); min-width: 0; }
+.plate-head { display: flex; justify-content: space-between; gap: var(--s3); align-items: center; flex-wrap: wrap; margin-bottom: var(--s4); }
+.plate-head .eyebrow { color: var(--plate-dim); }
+.plate-head .eyebrow::before { background: var(--led-ok); }
+.plate-head .plate-tag { font: 500 11.5px/1 var(--f-mono); color: var(--plate-dim); border: 1px solid var(--plate-edge); padding: 4px 7px; border-radius: 5px; white-space: nowrap; }
+.ports { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s5) var(--s4); }
+.port { display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.port .tag { font: 700 13px/1 var(--f-display); letter-spacing: .06em; background: var(--rack-hi); color: var(--rack); padding: 4px 7px 3px; border-radius: 4px; transform: rotate(-.6deg); font-variant-numeric: tabular-nums; box-shadow: 0 1px 0 rgba(0,0,0,.4); }
+.jack { position: relative; width: 56px; height: 42px; border-radius: 6px; background: var(--jack); border: 1px solid var(--plate-edge); box-shadow: inset 0 3px 8px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.04); }
+.jack::before { content: ""; position: absolute; left: 15px; right: 15px; bottom: -1px; height: 10px; background: var(--plate); border: 1px solid var(--plate-edge); border-bottom: 0; border-radius: 3px 3px 0 0; }
+.jack::after { content: ""; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--led-off); box-shadow: inset 0 0 0 1px var(--plate-dim); }
+.port[data-state="open"] .jack::after { background: var(--led-ok); box-shadow: 0 0 10px var(--led-ok); }
+.port[data-state="only"] .jack::after { background: var(--led-only); box-shadow: 0 0 10px var(--led-only); }
+.port[data-state="limit"] .jack::after, .port[data-state="tarpit"] .jack::after { background: var(--led-warn); box-shadow: 0 0 10px var(--led-warn); }
+.port[data-state="local"] .jack::after { background: transparent; box-shadow: inset 0 0 0 1.5px var(--led-only); }
+.port[data-state="tarpit"] .jack::after { animation: blink 1.6s steps(2, start) infinite; }
+.ports.boot .jack::after { animation: led-on .5s ease-out both; animation-delay: calc(var(--i) * 90ms); }
+.port.changed .jack { animation: ring .7s ease-out; }
+@keyframes blink { to { opacity: .25; } }
+@keyframes led-on { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes ring { from { box-shadow: inset 0 3px 8px rgba(0,0,0,.7), 0 0 0 3px rgba(244, 247, 250, .55); } to { box-shadow: inset 0 3px 8px rgba(0,0,0,.7), 0 0 0 10px rgba(244, 247, 250, 0); } }
+.port .what { font: 600 13px/1.2 var(--f-body); }
+.port .state { font-size: 12px; line-height: 1.45; color: var(--plate-dim); overflow-wrap: anywhere; }
+.port .state b { color: var(--plate-ink); font-weight: 600; }
+.plate-foot { margin-top: var(--s4); padding-top: var(--s3); border-top: 1px solid var(--plate-edge); font-size: 12.5px; color: var(--plate-dim); display: flex; gap: var(--s2) var(--s5); flex-wrap: wrap; }
+.plate-foot span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.plate-foot .k-open::before { background: var(--led-ok); }
+.plate-foot .k-only::before { background: var(--led-only); }
+.plate-foot .k-warn::before { background: var(--led-warn); }
+.plate-foot .k-local::before { box-shadow: inset 0 0 0 1.5px var(--led-only); }
+.plate-foot .k-off::before { background: var(--led-off); box-shadow: inset 0 0 0 1px var(--plate-dim); }
+
+/* logins */
+.logins-head { padding: var(--s4) var(--s5); border-bottom: 1px solid var(--rule-2); display: flex; justify-content: space-between; gap: var(--s3); align-items: baseline; flex-wrap: wrap; }
+.login { display: grid; grid-template-columns: 34px minmax(0, 150px) minmax(0, 1fr) auto; gap: var(--s4); padding: var(--s4) var(--s5); align-items: start; }
+.login + .login { border-top: 1px solid var(--rule-2); }
+.avatar { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--sunken); border: 1px solid var(--rule); color: var(--ink-2); }
+.login .who { font-weight: 600; padding-top: 2px; }
+.login .who small { display: block; font: 400 12.5px/1.4 var(--f-mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.login .how { font-size: 14px; color: var(--ink-2); min-width: 0; overflow-wrap: anywhere; padding-top: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font: 600 12px/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase; padding: 6px 9px 5px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+.pill svg.i { width: 13px; height: 13px; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.off { background: var(--sunken); color: var(--ink-2); border-color: var(--rule); }
+
+/* terminal */
+.term { background: var(--code-bg); border: 1px solid var(--plate-edge); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-lift); }
+.term-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); padding: 10px var(--s4); background: var(--code-bar); border-bottom: 1px solid var(--plate-edge); color: var(--code-dim); font: 500 12.5px/1 var(--f-mono); }
+.term-bar .host { display: inline-flex; align-items: center; gap: 8px; color: var(--code-ink); }
+.term-bar .host::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--led-ok); box-shadow: 0 0 8px var(--led-ok); }
+.cmds { list-style: none; margin: 0; padding: var(--s3) 0; counter-reset: cmd; }
+.cmds li { counter-increment: cmd; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: var(--s3) var(--s4) var(--s3) var(--s3); }
+.cmds li + li { border-top: 1px solid rgba(255,255,255,.05); }
+.cmds li::before { content: counter(cmd, decimal-leading-zero); font: 700 14px/1 var(--f-display); font-variant-numeric: tabular-nums; color: var(--rack); background: var(--rack-hi); border-radius: 5px; height: 22px; display: grid; place-items: center; margin-top: 1px; }
+.cmd-body { display: grid; gap: 8px; min-width: 0; }
+.cmd-body > p { font-size: 14px; color: var(--code-ink); }
+.cmd-body > p code { background: rgba(255,255,255,.06); border-color: var(--plate-edge); color: var(--code-ink); }
+.cmd-body > p a { color: var(--rack-hi); }
+.cmd-body .expect { font-size: 13px; color: var(--code-dim); display: flex; gap: 6px; }
+.cmd-body .expect svg.i { width: 14px; height: 14px; margin-top: 3px; color: var(--led-ok); }
+.code { position: relative; background: rgba(255,255,255,.03); color: var(--code-ink); border: 1px solid var(--plate-edge); border-radius: 8px; min-width: 0; }
+.code pre { margin: 0; padding: 10px 84px 10px 12px; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+.code pre:focus-visible { outline: 2px solid var(--rack-hi); outline-offset: -2px; }
+.code pre .c { color: var(--code-dim); }
+.code pre .ln::before { content: "$ "; color: var(--led-ok); }
+.copy { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 5px; font: 600 12px/1 var(--f-body); padding: 6px 9px; border-radius: 6px; border: 1px solid var(--plate-edge); background: var(--plate); color: var(--code-ink); cursor: pointer; }
+.copy svg.i { width: 13px; height: 13px; }
+.copy:hover { border-color: var(--plate-dim); }
+.copy:focus-visible { outline-color: var(--rack-hi); }
+.copy[data-done] { color: var(--led-ok); border-color: var(--led-ok); }
+.recover { margin: 0 var(--s4) var(--s4); border: 1px solid rgba(242, 177, 59, .3); background: rgba(242, 177, 59, .06); border-radius: var(--r); padding: var(--s4); display: flex; gap: var(--s3); font-size: 13.5px; color: var(--code-ink); }
+.recover svg.i { color: var(--led-warn); margin-top: 2px; }
+.recover code { background: rgba(255,255,255,.06); border-color: var(--plate-edge); color: var(--code-ink); }
+.recover b { color: var(--rack-hi); }
+
+/* config file */
+.file { background: var(--code-bg); border: 1px solid var(--plate-edge); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-lift); }
+.file-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); background: var(--code-bar); border-bottom: 1px solid var(--plate-edge); padding: 0 var(--s3) 0 0; }
+.file-tab { display: inline-flex; align-items: center; gap: 8px; padding: 11px var(--s4); color: var(--code-ink); font: 500 13px/1 var(--f-mono); background: var(--code-bg); border-right: 1px solid var(--plate-edge); box-shadow: inset 0 2px 0 var(--rack-hi); }
+.file-meta { font: 500 12px/1 var(--f-mono); color: var(--code-dim); display: flex; gap: var(--s3); align-items: center; }
+.file-bar .copy { position: static; }
+.file pre { margin: 0; padding: var(--s3) 0; max-height: 460px; overflow: auto; font-size: 13px; line-height: 1.6; color: var(--code-ink); counter-reset: line; }
+.file pre:focus-visible { outline: 2px solid var(--rack-hi); outline-offset: -2px; }
+.file pre .l { display: inline; }
+.file pre .l::before { counter-increment: line; content: counter(line); display: inline-block; width: 44px; padding-right: 14px; text-align: right; color: var(--code-ln); user-select: none; }
+.file pre .k { color: var(--code-key); }
+.file pre .v { color: var(--rack-hi); }
+.file pre .c { color: var(--code-dim); }
+
+/* ---------- steps (rack units) ---------- */
+.stack-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); flex-wrap: wrap; margin: var(--s7) 0 var(--s3); }
+.block-head + .stack-head { margin-top: 0; }
+.stack-head h3 { font: 700 26px/1.1 var(--f-display); letter-spacing: .01em; }
+.stack-head h3 code { font-size: .62em; background: var(--sunken); vertical-align: 3px; margin-left: 6px; }
+.units { border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--panel); overflow: hidden; box-shadow: var(--shadow); }
+.unit { display: grid; grid-template-columns: 70px minmax(0, 230px) minmax(0, 1fr) minmax(0, 200px); gap: var(--s4); padding: 14px var(--s5) 14px var(--s4); border-top: 1px solid var(--rule-2); align-items: start; transition: background-color .15s; }
+.unit:first-child { border-top: 0; }
+.unit:hover { background: var(--panel-2); }
+.unit[data-run="no"] { background: var(--sunken); }
+.unit[data-run="no"] .u-name b, .unit[data-run="no"] .u-name code { color: var(--ink-2); }
+.u-num { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.u-num b { font: 700 14px/1 var(--f-display); background: var(--brand); color: var(--on-brand); padding: 5px 6px 4px; border-radius: 5px; letter-spacing: .04em; font-variant-numeric: tabular-nums; min-width: 32px; text-align: center; }
+.u-num i { width: 8px; height: 8px; border-radius: 50%; background: var(--led-off); box-shadow: inset 0 0 0 1px var(--off); }
+.unit[data-run="yes"] .u-num i { background: var(--led-ok); box-shadow: 0 0 8px var(--led-ok); }
+.u-name { display: grid; gap: 2px; min-width: 0; }
+.u-name code { background: none; border: 0; padding: 0; font-size: 13px; color: var(--accent); font-weight: 500; }
+.u-name b { font-weight: 600; font-size: 14.5px; line-height: 1.35; }
+.u-detail { font-size: 14px; color: var(--ink-2); min-width: 0; }
+.u-detail:empty { display: none; }
+.u-state { display: grid; gap: 6px; justify-items: start; }
+.u-state .why { font-size: 12.5px; color: var(--ink-2); line-height: 1.4; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+
+/* ---------- audit chart ---------- */
+.audit-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: var(--s5); align-items: start; }
+.chart { padding: var(--s5); display: grid; gap: var(--s4); position: relative; }
+.chart-head { display: flex; justify-content: space-between; gap: var(--s3); align-items: flex-start; flex-wrap: wrap; }
+.chart-head p { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.legend { display: flex; gap: var(--s4); flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend span i { width: 12px; height: 12px; border-radius: 3px; }
+.legend b { color: var(--ink); font-weight: 600; }
+.bars { display: grid; gap: 10px; }
+.brow { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: var(--s4); align-items: center; }
+.brow .name { font-size: 13.5px; color: var(--ink); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.stack { display: flex; gap: 2px; height: 16px; flex: none; }
+.bseg { position: relative; display: block; height: 100%; cursor: default; min-width: 3px; }
+.bseg::after { content: ""; position: absolute; left: -1px; right: -1px; top: -4px; bottom: -4px; }
+.bseg:last-child { border-radius: 0 4px 4px 0; }
+.bseg.info { background: var(--sev-info); }
+.bseg.warn { background: var(--sev-warn); }
+.bseg.fail { background: var(--sev-fail); }
+.bseg:hover, .bseg:focus-visible { filter: brightness(1.12); outline: 2px solid var(--ink); outline-offset: 1px; }
+.tip-val { font: 600 13px/1 var(--f-body); color: var(--ink); font-variant-numeric: tabular-nums; }
+.axis { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: var(--s4); font: 500 11.5px/1 var(--f-mono); color: var(--ink-3); }
+.ticks { position: relative; height: 14px; border-top: 1px solid var(--rule); margin-right: 32px; }
+.ticks span { position: absolute; top: 4px; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.ctip { position: absolute; z-index: 5; pointer-events: none; background: var(--ink); color: var(--panel); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; line-height: 1.4; box-shadow: var(--shadow-lift); white-space: nowrap; }
+.ctip b { display: block; font: 600 16px/1.2 var(--f-body); }
+.chart-foot { display: flex; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--ink-2); padding-top: var(--s3); border-top: 1px solid var(--rule-2); }
+.chart-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.chart-table th, .chart-table td { padding: 8px 10px; border-top: 1px solid var(--rule-2); text-align: right; font-variant-numeric: tabular-nums; }
+.chart-table th:first-child, .chart-table td:first-child { text-align: left; }
+.chart-table thead th { border-top: 0; font: 600 12px/1.2 var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.sevs { display: grid; gap: var(--s3); }
+.sev { padding: var(--s4); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px var(--s3); align-items: baseline; }
+.sev .val { font: 600 30px/1 var(--f-body); letter-spacing: -.02em; grid-row: span 2; display: flex; align-items: center; gap: 10px; }
+.sev .val i { width: 12px; height: 12px; border-radius: 3px; }
+.sev b { font-weight: 600; font-size: 14px; }
+.sev .desc { font-size: 12.5px; color: var(--ink-2); grid-column: 2; }
+.audit-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 var(--s6); margin-top: var(--s6); }
+.asec { border-top: 1px solid var(--rule); padding-block: var(--s3); }
+.asec summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--s3); align-items: center; }
+.asec summary::-webkit-details-marker { display: none; }
+.asec summary .t { font-weight: 600; }
+.asec summary .tw::before { content: "+"; color: var(--ink-2); font-family: var(--f-mono); }
+.asec[open] summary .tw::before { content: "\2212"; }
+.asec .cnt { font: 600 13px/1 var(--f-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.asec ul { list-style: none; margin: var(--s3) 0 var(--s2); padding: 0 0 0 28px; display: grid; gap: 6px; }
+.asec li { display: flex; justify-content: space-between; gap: var(--s3); font-size: 14px; align-items: baseline; flex-wrap: wrap; }
+.asec li code { font-size: 12px; }
+.outcomes { display: inline-flex; gap: 4px; }
+.outcomes i { font: 600 10.5px/1 var(--f-mono); font-style: normal; padding: 3px 5px; border-radius: 4px; }
+.outcomes .PASS { background: var(--ok-soft); color: var(--ok); }
+.outcomes .WARN { background: var(--warn-soft); color: var(--warn); }
+.outcomes .FAIL { background: var(--bad-soft); color: var(--bad); }
+.outcomes .INFO { background: var(--sunken); color: var(--ink-2); border: 1px solid var(--rule); }
+
+/* ---------- tables, agent, links ---------- */
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--panel); box-shadow: var(--shadow); }
+table.ref { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+table.ref th, table.ref td { text-align: left; vertical-align: top; padding: 14px var(--s4); border-top: 1px solid var(--rule-2); }
+table.ref thead th { border-top: 0; font: 600 12px/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); background: var(--panel-2); }
+table.ref tbody th { font-weight: 600; width: 22%; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s5); }
+.two .card { padding: var(--s5); display: grid; gap: var(--s4); align-content: start; }
+.two .card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.two .code { background: var(--code-bg); }
+.links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s4); }
+.links a { display: grid; gap: 4px; text-decoration: none; color: var(--ink); padding: var(--s4) var(--s5); border: 1px solid var(--rule); border-radius: var(--r); background: var(--panel); box-shadow: var(--shadow); transition: border-color .15s, transform .15s; }
+.links a:hover { border-color: var(--accent); transform: translateY(-1px); }
+.links a b { font-weight: 600; color: var(--accent); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.links a span { font-size: 13.5px; color: var(--ink-2); }
+footer { border-top: 1px solid var(--rule); background: var(--panel); }
+footer .wrap { padding-block: var(--s5); display: flex; justify-content: space-between; align-items: center; gap: var(--s3) var(--s5); flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.foot-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font: 600 15px/1 var(--f-mono); letter-spacing: -.02em; }
+.foot-brand .logo { width: 24px; height: 24px; }
+
+@media (max-width: 1080px) {
+  .hero .hero-grid { grid-template-columns: minmax(0, 1fr); gap: var(--s6); }
+  .kpis-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .console { grid-template-columns: minmax(0, 1fr); }
+  .controls { position: static; max-height: none; }
+  .audit-top { grid-template-columns: minmax(0, 1fr); }
+  .sevs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .unit { grid-template-columns: 64px minmax(0, 1fr); }
+  .u-detail, .u-state { grid-column: 2; }
+  .audit-grid, .two { grid-template-columns: minmax(0, 1fr); }
+  .links { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  section.block { padding-block: var(--s7) var(--s6); }
+  .kpis-hero { grid-template-columns: minmax(0, 1fr); }
+  .login { grid-template-columns: 34px minmax(0, 1fr); }
+  .login .how, .login .pill { grid-column: 2; }
+  .seg.cols-2, .fields, .sevs { grid-template-columns: minmax(0, 1fr); }
+  .brow { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .brow .name { text-align: left; white-space: normal; overflow: visible; }
+  .axis { grid-template-columns: minmax(0, 1fr); }
+  .axis > span:first-child { display: none; }
+  .ports .port:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .code pre { padding-right: 12px; padding-top: 40px; }
+  .rackunit { grid-template-columns: 12px minmax(0, 1fr) 12px; }
+  .ear i { width: 6px; height: 6px; }
+  .plate { padding: var(--s4); }
+  .ports { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) {
+  .opt input:checked + span { outline: 3px solid CanvasText; outline-offset: -3px; }
+  .pill, .outcomes i { border: 1px solid CanvasText; }
+  .meter i, .sbar i, .bseg, .legend span i, .sev .val i, .slegend span::before { forced-color-adjust: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 64 64"><path fill="currentColor" fill-rule="evenodd" d="M18 0H46A18 18 0 0 1 64 18V46A18 18 0 0 1 46 64H18A18 18 0 0 1 0 46V18A18 18 0 0 1 18 0Z M32 13A9 9 0 0 1 36.2 30L38.3 37.6A2.6 2.6 0 0 1 35.8 41H28.2A2.6 2.6 0 0 1 25.7 37.6L27.8 30A9 9 0 0 1 32 13Z M22.5 45H41.5A3 3 0 0 1 41.5 51H22.5A3 3 0 0 1 22.5 45Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6m0-6 6 6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#main" aria-label="server-prep, top of the page">
+      <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
+      <b>server-prep</b>
+      <span class="chip" id="ver">v1.1.1</span>
+    </a>
+    <nav class="topnav" aria-label="Page and project">
+      <a class="sec" href="#setup" data-sec="setup">Your setup</a>
+      <a class="sec" href="#steps" data-sec="steps">Steps</a>
+      <a class="sec" href="#audit" data-sec="audit">Audit</a>
+      <a class="sec" href="#agent" data-sec="agent">With an agent</a>
+      <button class="tbtn" type="button" id="theme-btn" aria-label="Theme: system"><svg class="i"><use href="#i-theme"/></svg><span id="theme-label" class="tlabel">System</span></button>
+      <a class="tbtn" href="https://github.com/exceev-consulting/server-prep" id="nav-repo">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<section class="hero" aria-labelledby="hero-h">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Debian &amp; Ubuntu · VPS or dedicated · Coolify, Dokploy, Openship</span>
+      <h1 id="hero-h">From a fresh server to a <em>panel-ready</em> one, with proof.</h1>
+      <p class="lead">server-prep locks down a new server (SSH keys on a new port, a firewall that also covers Docker, intrusion blocking, automatic security updates) and gets it ready for your deployment panel. An audit runs before and after, so you see what changed.</p>
+      <div class="cta">
+        <a class="btn primary" href="#setup">Build your setup <svg class="i"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="https://github.com/exceev-consulting/server-prep/releases/latest" id="rel-link">Download the latest release</a>
+      </div>
+      <p class="tested" id="tested"></p>
+    </div>
+    <aside class="proof" aria-labelledby="proof-h">
+      <div class="proof-head"><span class="eyebrow">Audit, before and after</span></div>
+      <h2 id="proof-h">The audit shows what changed</h2>
+      <div class="score">
+        <div class="score-top"><span>Before: an Ubuntu desktop used as a server, first run</span><b>66<small>/100</small></b></div>
+        <div class="sbar" role="img" aria-label="Before: 17 PASS, 14 WARN, 5 FAIL out of 36 scored checks"><i class="p" style="width:47.2%"></i><i class="w" style="width:38.9%"></i><i class="f" style="width:13.9%"></i></div>
+        <div class="slegend"><span class="p">17 PASS</span><span class="w">14 WARN</span><span class="f">5 FAIL</span></div>
+      </div>
+      <div class="after"><span class="big">0 FAIL</span><p><b>Typical result on a prepared host:</b> about 43 PASS. Normal WARNs: pending regular updates, a reboot after a kernel upgrade.</p></div>
+      <p class="formula">Score = (PASS × 100 + WARN × 50) ÷ scored checks. INFO never counts. <code>server-audit.sh</code> exits with 1 when any check FAILs.</p>
+    </aside>
+  </div>
+  <div class="wrap hero-wrap-kpi">
+    <div class="kpis-hero" id="kpis-hero"></div>
+  </div>
+</section>
+
+<section class="block" id="setup" aria-labelledby="setup-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Build your setup</span>
+      <h2 id="setup-h">Pick your server and panel. See exactly what you get.</h2>
+      <p class="lead">The dashboard, the firewall faceplate, the logins, the commands and the config file all follow your choices.</p>
+    </div>
+
+    <div class="console">
+      <form class="controls card" id="controls" autocomplete="off" aria-label="Your setup">
+        <div class="controls-head"><h3>Your setup</h3><button class="reset" type="button" id="reset">Reset</button></div>
+        <fieldset>
+          <legend>Machine</legend>
+          <div class="seg" id="opt-machine"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Deployment panel</legend>
+          <div class="seg cols-2" id="opt-panel"></div>
+        </fieldset>
+        <fieldset id="fs-access">
+          <legend>How the panel reaches the server</legend>
+          <div class="seg" id="opt-access"></div>
+          <p class="hint" id="access-hint"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Apps on ports 80 and 443</legend>
+          <div class="seg cols-2" id="opt-web"></div>
+        </fieldset>
+        <div class="field">
+          <label for="admin-ips">Your IPs for admin SSH</label>
+          <input type="text" id="admin-ips" placeholder="203.0.113.4 192.168.1.0/24" spellcheck="false" aria-describedby="admin-ips-hint">
+          <p class="hint" id="admin-ips-hint">Office or home public IPs, or a LAN range. Find yours with <code>curl -4 ifconfig.me</code> on your own computer. Leave it empty only if your computer is on the same Tailscale network.</p>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="host">Server name</label>
+            <input type="text" id="host" value="web-01" spellcheck="false" aria-describedby="host-hint">
+            <p class="hint" id="host-hint">a-z, 0-9 and hyphens.</p>
+          </div>
+          <div class="field">
+            <label for="user">Your login</label>
+            <input type="text" id="user" placeholder="ubuntu, debian..." spellcheck="false" aria-describedby="user-hint">
+            <p class="hint" id="user-hint">Empty = the user who runs sudo.</p>
+          </div>
+        </div>
+        <p class="hint">Optional steps (auditd, AIDE, Telegraf, Telegram...) are switched on and off in the <a href="#steps">step list</a>.</p>
+      </form>
+
+      <div class="outputs">
+        <div class="dash card" role="region" aria-labelledby="dash-h">
+          <div class="dash-head"><h3 id="dash-h">Your server after server-prep</h3><span id="dash-status"></span></div>
+          <div class="kpis" id="kpis"></div>
+          <div class="alerts" id="alerts"></div>
+          <p class="sr" id="dash-live" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="rackunit" role="group" aria-labelledby="plate-h">
+          <div class="ear" aria-hidden="true"><i></i><i></i></div>
+          <div class="plate">
+            <div class="plate-head">
+              <span class="eyebrow" id="plate-h">Firewall after server-prep · incoming</span>
+              <span class="plate-tag" id="plate-unit">ufw · default deny</span>
+            </div>
+            <div class="ports boot" id="ports"></div>
+            <div class="plate-foot" aria-hidden="true">
+              <span class="k-open">Open to all</span><span class="k-only">Only from listed sources</span><span class="k-warn">Anyone, slowed down</span><span class="k-local">This machine only</span><span class="k-off">Closed</span>
+            </div>
+          </div>
+          <div class="ear" aria-hidden="true"><i></i><i></i></div>
+        </div>
+
+        <div class="card" id="logins"></div>
+
+        <div class="term" role="region" aria-labelledby="cmds-h">
+          <div class="term-bar"><span class="host" id="term-host">admin@web-01</span><span id="cmds-h">Commands, in order</span></div>
+          <ol class="cmds" id="cmds" role="list"></ol>
+          <div class="recover"><svg class="i"><use href="#i-alert"/></svg><p><b>If SSH locks you out:</b> log in from the console. <code>sudo ufw disable</code> opens the firewall again. <code>sudo bash /var/lib/server-prep/backups/&lt;date&gt;/rollback.sh</code> restores every file server-prep changed. The 10-minute auto-undo only covers the SSH settings, not the firewall.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block-head" style="margin: var(--s7) 0 var(--s3);">
+      <h3>Your config file</h3>
+      <p class="muted" id="conf-intro">Save it next to the scripts. It never holds secrets: tokens are typed at the prompt. Filled configs are ignored by git.</p>
+    </div>
+    <div class="file">
+      <div class="file-bar">
+        <span class="file-tab" id="conf-name">web-01.conf</span>
+        <span class="file-meta"><span id="conf-lines"></span><button class="copy" type="button" data-copy="conf-out" aria-label="Copy the config file"><svg class="i"><use href="#i-copy"/></svg>Copy</button></span>
+      </div>
+      <pre id="conf-out" role="group" tabindex="0" aria-label="Config file"></pre>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="steps" aria-labelledby="steps-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">What runs, in order</span>
+      <h2 id="steps-h">Two scripts, every step listed.</h2>
+      <p class="lead">Each step can run twice safely, backs up the files it changes, and goes in the report. Use <code>--only</code> or <code>--skip</code> with these names. Switch optional steps here and the config above follows.</p>
+    </div>
+    <div class="stack-head"><h3>First boot <code>server-preconfig.sh</code></h3><span class="muted" id="pre-count"></span></div>
+    <div class="units" id="pre-units"></div>
+    <div class="stack-head"><h3>Security <code>server-prep.sh</code></h3><span class="muted" id="prep-count"></span></div>
+    <div class="units" id="prep-units"></div>
+  </div>
+</section>
+
+<section class="block" id="audit" aria-labelledby="audit-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">What the audit checks</span>
+      <h2 id="audit-h">server-audit.sh, read-only.</h2>
+      <p class="lead" id="audit-lead"></p>
+    </div>
+    <div class="audit-top">
+      <div class="chart card" id="chart" role="region" aria-labelledby="chart-h">
+        <div class="chart-head">
+          <div><h3 id="chart-h">Checks per area</h3><p>Each check counted once, by the worst result it can give</p></div>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div id="chart-body"></div>
+        <div class="chart-foot"><span>Hover or focus a bar for its count.</span><button class="tbtn" type="button" id="chart-toggle">Show as table</button></div>
+        <div class="ctip" id="ctip" hidden></div>
+      </div>
+      <div class="sevs" id="sevs"></div>
+    </div>
+    <div class="audit-grid" id="audit-grid"></div>
+  </div>
+</section>
+
+<section class="block" id="vps" aria-labelledby="vps-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">VPS or dedicated server</span>
+      <h2 id="vps-h">Same scripts. A few details change.</h2>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="vps-h"><table class="ref" id="vps-table"></table></div>
+  </div>
+</section>
+
+<section class="block" id="agent" aria-labelledby="agent-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">With an AI agent</span>
+      <h2 id="agent-h">Let Claude Code walk you through it.</h2>
+      <p class="lead">The repo ships project context and skills, so an agent can guide you question by question. You stay in control: you run every <code>sudo</code> command and type every secret yourself.</p>
+    </div>
+    <div class="two">
+      <div class="card">
+        <span class="pill ok" style="justify-self:start"><svg class="i"><use href="#i-check"/></svg>Works today</span>
+        <h3>Claude Code + <code>/new-server</code></h3>
+        <div class="code"><button class="copy" type="button" data-copy="agent-cmd" aria-label="Copy the Claude Code commands"><svg class="i"><use href="#i-copy"/></svg>Copy</button><pre id="agent-cmd" role="group" tabindex="0" aria-label="Claude Code commands"></pre></div>
+        <ul>
+          <li><code>/new-server</code>: guided setup, from first SSH to the final audit.</li>
+          <li><code>/audit-review</code>: paste an audit, get a fix for every WARN and FAIL.</li>
+          <li><code>/monitoring</code>: Telegraf, InfluxDB and Grafana.</li>
+          <li><code>/add-step</code>: the checklist for changing the scripts.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill off" style="justify-self:start">Planned</span>
+        <h3>For beginners, and for Codex</h3>
+        <ul>
+          <li>A beginner mode that asks plain questions and stops before risky steps.</li>
+          <li>JSON output from every script, so the agent reads facts.</li>
+          <li><code>AGENTS.md</code> and shared skills, so Codex works the same way.</li>
+          <li>Openship support at the same level as Coolify.</li>
+        </ul>
+        <p><a id="roadmap-link" href="https://github.com/exceev-consulting/server-prep/issues/6">Follow the roadmap on GitHub</a> · <a id="agent-link" href="https://github.com/exceev-consulting/server-prep/issues/7">the beginner epic</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="more" aria-labelledby="more-h">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Guides and help</span>
+      <h2 id="more-h">Go further.</h2>
+    </div>
+    <div class="links" id="links"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="foot-brand"><svg class="logo" aria-hidden="true"><use href="#logo"/></svg>server-prep</span>
+    <span id="foot-gen"></span>
+    <span>Fonts load from Google Fonts. Nothing else leaves this page; it only remembers your theme choice in this browser.</span>
+    <span>MIT · Built and maintained by <a href="https://exceev.com">Exceev Consulting</a></span>
+  </div>
+</footer>
+
+<p class="sr" id="copy-status" role="status" aria-live="polite"></p>
+<noscript><p class="wrap" style="padding-block:16px">This page needs JavaScript to draw your setup. Everything it shows is also in the <a href="https://github.com/exceev-consulting/server-prep#readme">README</a>.</p></noscript>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.SERVER_PREP_DATA;
+  if (!D) { document.getElementById("alerts").innerHTML = '<div class="alert bad"><b>Missing data</b><span>data.js did not load. Run scripts/gen-data.sh.</span></div>'; return; }
+  var REPO = D.project_url;
+  var SSH_PORT = D.defaults.ssh_port;
+  var LAPI = D.defaults.crowdsec_lapi_port;
+  // Issues the "planned" notes link to (roadmap epics)
+  var ISSUES = { roadmap: 6, agent: 7, openship: 10 };
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function abs(u) { return /^https?:/.test(u) ? u : REPO + "/blob/main/" + u.replace(/^\.\//, ""); }
+  function issue(n) { return REPO + "/issues/" + n; }
+  function icon(name) { return '<svg class="i" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
+  function md(s) {   // inline Markdown used in the README tables: links, code, bold
+    var h = esc(s);
+    h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, t, u) { return '<a href="' + abs(u) + '">' + t + "</a>"; });
+    h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+    h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return h;
+  }
+  function setting(name) { for (var i = 0; i < D.settings.length; i++) if (D.settings[i].name === name) return D.settings[i]; return null; }
+  function words(s) { return (s || "").split(/[\s,]+/).filter(Boolean); }
+  function panelLabel(id) { for (var i = 0; i < D.panels.length; i++) if (D.panels[i].id === id) return D.panels[i].label; return "your panel"; }
+  function v4(t) { var m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$/.exec(t); if (!m) return false; for (var i = 1; i <= 4; i++) if (+m[i] > 255) return false; return !m[6] || +m[6] <= 32; }
+  function v6(t) {
+    var m = /^([0-9a-fA-F:]+)(?:\/(\d{1,3}))?$/.exec(t);
+    if (!m || m[1].indexOf(":") < 0) return false;
+    var a = m[1], dbl = a.split("::").length - 1;
+    if (dbl > 1 || /^:[^:]/.test(a) || /[^:]:$/.test(a)) return false;
+    var g = a.split(":").filter(function (x) { return x !== ""; });
+    if (g.some(function (x) { return x.length > 4; })) return false;
+    if (dbl ? g.length > 7 : g.length !== 8) return false;
+    return !m[2] || +m[2] <= 128;
+  }
+  function tooWide(t) { var m = /\/(\d+)$/.exec(t); return !!m && (+m[1] === 0 || (t.indexOf(":") < 0 && +m[1] < 8)); }
+
+  // ---------- theme (per-viewer convenience, stored only in this browser) ----------
+  var hostTheme = document.documentElement.getAttribute("data-theme");
+  function getTheme() { try { return localStorage.getItem("sp-theme") || "system"; } catch (e) { return "system"; } }
+  function applyTheme(t) {
+    if (t !== "system") document.documentElement.setAttribute("data-theme", t);
+    else if (hostTheme) document.documentElement.setAttribute("data-theme", hostTheme);
+    else document.documentElement.removeAttribute("data-theme");
+    $("theme-label").textContent = t.charAt(0).toUpperCase() + t.slice(1);
+    $("theme-btn").setAttribute("aria-label", "Theme: " + t + ". Change theme");
+  }
+  var theme = getTheme();
+  if (theme !== "system") applyTheme(theme); else $("theme-label").textContent = "System";
+  $("theme-btn").addEventListener("click", function () {
+    var dark = hostTheme ? hostTheme === "dark" : !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+    var order = dark ? ["system", "light", "dark"] : ["system", "dark", "light"];
+    theme = order[(order.indexOf(theme) + 1) % order.length];
+    applyTheme(theme);
+    try { localStorage.setItem("sp-theme", theme); } catch (e) { /* storage blocked: the choice lasts for this visit */ }
+  });
+
+  // ---------- state ----------
+  var gates = {}, gateDefaults = {};   // INSTALL_X / TELEGRAM_ENABLE -> boolean, from the example config
+  D.settings.forEach(function (s) { if (/^(INSTALL_|TELEGRAM_ENABLE$)/.test(s.name)) gateDefaults[s.name] = (s.example || s.default) === "yes"; });
+  var DEFAULT_STATE = { machine: "vps", panel: "coolify", access: ["tailscale"], web: "no", adminIps: "", host: "web-01", user: "" };
+  var state;
+  function resetState() { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); Object.keys(gateDefaults).forEach(function (k) { gates[k] = gateDefaults[k]; }); }
+  resetState();
+
+  var MACHINES = [
+    { id: "vps", label: "VPS", note: "Rented in the cloud. Keep the provider's network config." },
+    { id: "dedicated", label: "Dedicated or on-premise", note: "Rented bare metal, or a server in your office." },
+    { id: "laptop", label: "Laptop or desktop used as a server", note: "Also ignores the lid and never sleeps." }
+  ];
+  var ACCESS = {
+    tailscale: { label: "Tailscale", note: "Private network. Install it on the panel server and on your own computer, same account." },
+    cloudflared: { label: "Cloudflare Tunnel", note: "SSH through a Cloudflare tunnel. Needs your panel's tunnel support." },
+    public: { label: "Public IP", note: "Straight to the server's IP, only from the panel server's IP." }
+  };
+  var ACCESS_ORDER = ["tailscale", "cloudflared", "public"].filter(function (a) { return D.access.some(function (x) { return x.id === a; }); });
+
+  function opt(type, group, id, label, note) {
+    return '<label class="opt"><input type="' + type + '" name="' + group + '" id="' + group + "-" + id + '" value="' + id + '"><span><b>' + esc(label) + "</b>" + (note ? "<small>" + esc(note) + "</small>" : "") + "</span></label>";
+  }
+  $("opt-machine").innerHTML = MACHINES.map(function (m) { return opt("radio", "machine", m.id, m.label, m.note); }).join("");
+  $("opt-panel").innerHTML = D.panels.map(function (p) { return opt("radio", "panel", p.id, p.label, ""); }).join("") + opt("radio", "panel", "none", "None yet", "");
+  $("opt-access").innerHTML = ACCESS_ORDER.map(function (a) { return opt("checkbox", "access", a, ACCESS[a].label, ACCESS[a].note); }).join("");
+  $("opt-web").innerHTML = opt("radio", "web", "no", "Closed", "Apps through a tunnel") + opt("radio", "web", "yes", "Open", "Public VPS");
+  function syncForm() {
+    document.querySelectorAll('#controls input[name="machine"]').forEach(function (x) { x.checked = x.value === state.machine; });
+    document.querySelectorAll('#controls input[name="panel"]').forEach(function (x) { x.checked = x.value === state.panel; });
+    document.querySelectorAll('#controls input[name="web"]').forEach(function (x) { x.checked = x.value === state.web; });
+    document.querySelectorAll('#controls input[name="access"]').forEach(function (x) { x.checked = state.access.indexOf(x.value) >= 0; });
+    $("admin-ips").value = state.adminIps; $("host").value = state.host; $("user").value = state.user;
+  }
+
+  // ---------- static facts ----------
+  var auditChecks = D.audit.checks, auditSections = D.audit.sections.length;
+  function worst(c) { return c.statuses.indexOf("FAIL") >= 0 ? "fail" : c.statuses.indexOf("WARN") >= 0 ? "warn" : "info"; }
+  var SEV = { fail: 0, warn: 0, info: 0 };
+  D.audit.sections.forEach(function (s) { s.checks.forEach(function (c) { SEV[worst(c)]++; }); });
+  $("ver").textContent = "v" + D.versions.server_prep;
+  $("tested").textContent = "Tested on " + D.tested_targets + ".";
+  $("kpis-hero").innerHTML = [
+    [String(D.preconfig_steps.length + D.steps.length), "Steps", D.preconfig_steps.length + " first-boot steps, " + D.steps.length + " security steps"],
+    [String(auditChecks), "Audit checks", "in " + auditSections + " areas, read-only"],
+    [String(D.settings.length), "Settings", "in one commented config file, no secrets saved"],
+    ["10 min", "SSH safety net", "SSH changes undo themselves unless a new login works"]
+  ].map(function (k) { return '<div><span class="lbl">' + esc(k[1]) + '</span><span class="val">' + esc(k[0]) + '</span><span class="cap">' + esc(k[2]) + "</span></div>"; }).join("");
+  $("roadmap-link").href = issue(ISSUES.roadmap);
+  $("agent-link").href = issue(ISSUES.agent);
+
+  // ---------- derived view ----------
+  function panelOn() { return state.panel !== "none"; }
+  function has(a) { return panelOn() && state.access.indexOf(a) >= 0; }
+  var typingIp = false;   // the last token is still being typed: don't flag it yet
+  function ipTokens() {
+    var good = [], bad = [], wide = [];
+    var list = words(state.adminIps).filter(function (t, i, a) { return a.indexOf(t) === i; });
+    list.forEach(function (t, i) {
+      if (!(v4(t) || v6(t))) { if (!(typingIp && i === list.length - 1)) bad.push(t); }
+      else if (tooWide(t)) wide.push(t); else good.push(t);
+    });
+    return { good: good, bad: bad, wide: wide };
+  }
+  function host() { return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(state.host) ? state.host : "web-01"; }
+  function user() { return /^[a-z_][a-z0-9_-]*$/.test(state.user) ? state.user : ""; }
+  function login() { return user() || "<your-user>"; }
+  function adminReach() {   // how the admin's own computer reaches SSH
+    if (ipTokens().good.length || has("tailscale")) return "ok";
+    if (has("public")) return "panel-only";
+    if (has("cloudflared")) return "tunnel-only";
+    return "open";
+  }
+  function sshSources() {
+    var s = ipTokens().good.slice();
+    if (has("tailscale")) s.push("your tailnet");
+    if (has("public")) s.push("the panel server's IP");
+    if (has("cloudflared")) s.push("the tunnel");
+    return s;
+  }
+  function portList() {
+    var src = sshSources(), list = [], web = state.web === "yes";
+    list.push(src.length
+      ? { n: SSH_PORT + "/tcp", what: "SSH", st: "only", text: "<b>Only</b> from " + esc(src.join(", ")) + ". Keys only" }
+      : { n: SSH_PORT + "/tcp", what: "SSH", st: "limit", text: "<b>Anyone</b>, rate-limited. Keys only" });
+    list.push(gates.INSTALL_ENDLESSH && SSH_PORT !== "22"
+      ? { n: "22/tcp", what: "Old SSH port", st: "tarpit", text: "<b>Tarpit</b>: Endlessh keeps bots busy" }
+      : { n: "22/tcp", what: "Old SSH port", st: "off", text: "<b>Closed</b>" });
+    list.push({ n: "80/tcp", what: "HTTP", st: web ? "open" : "off", text: web ? "<b>Open to all</b>: your panel's proxy" : "<b>Closed</b>. Apps go through a tunnel" });
+    list.push({ n: "443/tcp+udp", what: "HTTPS, HTTP/3", st: web ? "open" : "off", text: web ? "<b>Open to all</b>: your panel's proxy" : "<b>Closed</b>" });
+    list.push({ n: "Docker", what: "Published container ports", st: web ? "open" : "off", text: web ? "<b>80/443 open to all</b>. ufw-docker makes the other container ports obey UFW" : "<b>Closed</b>: ufw-docker makes them obey UFW" });
+    if (gates.INSTALL_CROWDSEC) list.push({ n: LAPI + "/tcp", what: "CrowdSec API", st: "local", text: "<b>This machine only</b>, moved off 8080 for Traefik" });
+    return list;
+  }
+  function alertList() {
+    var out = [], ips = ipTokens(), reach = adminReach();
+    if (ips.bad.length) out.push(["bad", "Not an IP", "Remove or fix: " + esc(ips.bad.join(", ")) + ". Use IPs or ranges like 203.0.113.4 or 192.168.1.0/24."]);
+    if (ips.wide.length) out.push(["bad", "Open to all", esc(ips.wide.join(", ")) + " covers most of the internet: SSH would be open to everyone and those IPs would never be banned. Left out of the config."]);
+    if (reach === "panel-only") out.push(["bad", "Lockout", "Only the panel server's IP will reach SSH. Your own computer will be blocked. Add your IP, or tick Tailscale."]);
+    if (reach === "tunnel-only") out.push(["warn", "Tunnel only", "You will reach SSH only through the Cloudflare Tunnel, with cloudflared on your own computer. Not set up yet? Add your IP, or tick Tailscale."]);
+    if (reach === "open") out.push(["warn", "Open SSH", "No admin IPs and no private route: SSH on port " + SSH_PORT + " stays open to everyone (keys only, rate-limited)."]);
+    if (has("public")) out.push(["info", "Needs", "Put the panel server's public IP in <code>PANEL_IP</code> (on the panel server: <code>curl -4 ifconfig.me</code>). server-prep stops if it is empty."]);
+    if (panelOn() && state.access.length === 0) out.push(["bad", "Blocked", "No access route: root login is refused everywhere and " + esc(panelLabel(state.panel)) + " cannot connect."]);
+    if (has("cloudflared") && !has("tailscale") && !has("public")) out.push(["info", "Tunnel", "A panel reaches SSH through a tunnel only with its own tunnel support. Read the <a href=\"" + abs("docs/cloudflare-tunnel.md") + "\">Cloudflare Tunnel guide</a> first, or also tick Tailscale."]);
+    if (panelOn() && state.web === "no") out.push(["info", "Apps", "80/443 stay closed, so apps are not online until you publish them through a Cloudflare Tunnel run from your panel (<a href=\"" + abs("docs/cloudflare-tunnel.md") + "\">guide</a>). That tunnel is separate from the SSH route."]);
+    if (state.panel === "openship") out.push(["info", "Openship", "Works today as a generic SSH panel. Openship-specific checks (OpenResty, its own Docker install, the same-server channel) are <a href=\"" + issue(ISSUES.openship) + "\">planned</a>."]);
+    return out;
+  }
+
+  // ---------- renderers ----------
+  var lastAlerts = null, lastPorts = {}, liveT;
+  function renderAlerts(list) {
+    var ico = { bad: "x", warn: "alert", info: "info" };
+    var html = list.map(function (a) { return '<div class="alert ' + a[0] + '">' + icon(ico[a[0]]) + "<div><b>" + a[1] + "</b> · <span>" + a[2] + "</span></div></div>"; }).join("");
+    if (html !== lastAlerts) { $("alerts").innerHTML = html; lastAlerts = html; }
+  }
+
+  function stepRun(s) {
+    if (s.name === "laptop") return state.machine === "laptop" ? [true, "Only on laptops: yours is one."] : [false, "Only on laptops."];
+    if (s.name === "cloudflared") return has("cloudflared") ? [true, "Installs the tunnel on the host only if you type its token. Skipped when cloudflared runs as a panel service (recommended)."] : [false, "Only with Cloudflare Tunnel."];
+    if (s.name === "ips") return (gates.INSTALL_FAIL2BAN || gates.INSTALL_CROWDSEC) ? [true, ""] : [false, "Both tools are off."];
+    if (s.gate && s.gate in gates) return gates[s.gate] ? [true, ""] : [false, "Switched off."];
+    return [true, ""];
+  }
+
+  function renderKpis(ports, alerts) {
+    var internet = ports.filter(function (p) { return p.n !== "Docker" && (p.st === "open" || p.st === "limit" || p.st === "tarpit"); });
+    var src = sshSources();
+    var routes = D.access.filter(function (a) { return has(a.id); });
+    var on = D.steps.filter(function (s) { return stepRun(s)[0]; }).length;
+    var bad = alerts.filter(function (a) { return a[0] === "bad"; }).length, warn = alerts.filter(function (a) { return a[0] === "warn"; }).length;
+    var tiles = [
+      { lbl: "Open to the internet", val: internet.length, unit: internet.length === 1 ? "port" : "ports", cap: internet.length ? internet.map(function (p) { return p.n + (p.st === "tarpit" ? " (tarpit)" : p.st === "limit" ? " (rate-limited)" : ""); }).join(", ") : "Nothing answers from the internet" },
+      { lbl: "SSH entry points", val: src.length || "Any", unit: src.length ? (src.length === 1 ? "source" : "sources") : "", cap: src.length ? src.join(", ") : "Open to everyone, rate-limited" },
+      { lbl: "Root login routes", val: routes.length, unit: routes.length === 1 ? "route" : "routes", cap: panelOn() ? (routes.length ? "Root with an SSH key, from " + routes.map(function (a) { return ACCESS[a.id].label; }).join(" and ") : "Refused everywhere") : "No panel: root is refused" },
+      { lbl: "Steps that run", val: on, unit: "/ " + D.steps.length, cap: "plus " + D.preconfig_steps.length + " first-boot steps", meter: on / D.steps.length }
+    ];
+    var st = bad ? ["bad", "x", bad + (bad === 1 ? " blocker: fix it before you run" : " blockers: fix them before you run")]
+      : warn ? ["warn", "alert", warn + (warn === 1 ? " warning to read" : " warnings to read")] : ["ok", "check", "Ready to run: no lockout risk found"];
+    $("dash-status").innerHTML = '<span class="st ' + st[0] + '">' + icon(st[1]) + esc(st[2]) + "</span>";
+    clearTimeout(liveT); liveT = setTimeout(function () { $("dash-live").textContent = st[2]; }, 800);
+    $("kpis").innerHTML = tiles.map(function (t) {
+      var body = '<span class="val">' + esc(t.val) + (t.unit ? "<small>" + esc(t.unit) + "</small>" : "") + "</span>";
+      var meter = t.meter != null ? '<span class="meter" role="img" aria-label="' + esc(t.val + " of " + D.steps.length + " steps") + '"><i style="width:' + (t.meter * 100).toFixed(1) + '%"></i></span>' : "";
+      return '<div class="kpi"><span class="lbl">' + esc(t.lbl) + "</span>" + body + meter + '<span class="cap">' + esc(t.cap) + "</span></div>";
+    }).join("");
+  }
+
+  function renderPorts(list, boot) {
+    var el = $("ports");
+    el.innerHTML = list.map(function (p, i) {
+      var changed = !boot && lastPorts[p.n] && lastPorts[p.n] !== p.st;
+      return '<div class="port' + (changed ? " changed" : "") + '" data-state="' + p.st + '" style="--i:' + i + '"><span class="tag">' + esc(p.n) + '</span><span class="jack" aria-hidden="true"></span><span class="what">' + esc(p.what) + '</span><span class="state">' + p.text + "</span></div>";
+    }).join("");
+    lastPorts = {}; list.forEach(function (p) { lastPorts[p.n] = p.st; });
+    if (!boot) el.classList.remove("boot");
+  }
+
+  function renderLogins() {
+    var src = sshSources(), rows = [], reach = adminReach();
+    var pills = { ok: ["ok", "check", "Key only"], "panel-only": ["bad", "x", "Locked out"], "tunnel-only": ["warn", "alert", "Tunnel only"], open: ["warn", "alert", "Key, open"] };
+    rows.push({ ic: "user", who: "You", sub: (user() || "the sudo user") + ", sudo", how: "Your SSH key, port " + SSH_PORT + (src.length ? ", from " + src.join(", ") : ", from anywhere (rate-limited)") + ". Passwords are off.", pill: pills[reach] });
+    if (panelOn()) {
+      var routes = [];
+      D.access.forEach(function (a) { if (has(a.id)) routes.push(a.id === "public" ? "the panel server's IP" : a.sources.join(", ") + " (" + ACCESS[a.id].label + ")"); });
+      rows.push({ ic: "server", who: panelLabel(state.panel), sub: "root", how: routes.length ? "With an SSH key, only from " + routes.join(" and ") + ". The panel's key is added for root with a matching from= rule. Any key already in root's authorized_keys works from these routes too." : "Refused everywhere: pick an access route.", pill: routes.length ? ["ok", "check", "Restricted"] : ["bad", "x", "Refused"] });
+    } else {
+      rows.push({ ic: "server", who: "Root", sub: "no panel", how: "Root login is refused. To add a panel later, set PANEL, PANEL_PUBKEY and PANEL_ACCESS in /etc/server-prep/server-prep.conf, then run: sudo ./server-prep.sh --config /etc/server-prep/server-prep.conf --only users,firewall,ssh", pill: ["off", "lock", "Refused"] });
+    }
+    var bans = [gates.INSTALL_FAIL2BAN && "fail2ban", gates.INSTALL_CROWDSEC && "CrowdSec"].filter(Boolean);
+    rows.push({ ic: "lock", who: "Everyone else", sub: "any user", how: "Not in AllowUsers, so refused. At most 3 tries per connection." + (bans.length ? " Repeated failures get the IP banned by " + bans.join(" and ") + "." : " No automatic ban: fail2ban and CrowdSec are off."), pill: ["off", "lock", "Refused"] });
+    $("logins").innerHTML = '<div class="logins-head"><h3>Who can log in</h3><span class="muted" style="font-size:13px">SSH on port ' + esc(SSH_PORT) + ", keys only</span></div>" + rows.map(function (r) {
+      return '<div class="login"><span class="avatar" aria-hidden="true">' + icon(r.ic) + '</span><div class="who">' + esc(r.who) + "<small>" + esc(r.sub) + '</small></div><div class="how">' + esc(r.how) + '</div><span class="pill ' + r.pill[0] + '">' + icon(r.pill[1]) + esc(r.pill[2]) + "</span></div>";
+    }).join("");
+  }
+
+  function confLines() {
+    var over = {
+      ADMIN_USER: user(),
+      PANEL: panelOn() ? state.panel : "",
+      PANEL_PUBKEY: panelOn() ? (setting("PANEL_PUBKEY") || {}).example : "",
+      PANEL_ACCESS: D.access.filter(function (a) { return has(a.id); }).map(function (a) { return a.id; }).join(","),
+      PANEL_IP: "",
+      ADMIN_IPS: ipTokens().good.join(" "),
+      EXPOSE_WEB: state.web,
+      LAPTOP_MODE: state.machine === "laptop" ? "yes" : "auto",
+      TIMEZONE: ""
+    };
+    var notes = {
+      ADMIN_USER: "empty = the user who runs sudo; only this user can SSH in",
+      PANEL_IP: has("public") ? "REQUIRED: the panel server's public IP (curl -4 ifconfig.me on it)" : null,
+      TIMEZONE: "empty = keep the server's timezone"
+    };
+    Object.keys(gates).forEach(function (g) { over[g] = gates[g] ? "yes" : "no"; });
+    var lines = [["c", "# " + host() + ".conf - made with the server-prep setup console"], ["c", "#   sudo ./server-prep.sh --config " + host() + ".conf"], ["c", "# Never commit a filled copy. Secrets stay empty: the script asks for them."], ["c", ""]];
+    var sec = null, pad = 40;
+    D.settings.forEach(function (s) {
+      if (s.section !== sec) { if (sec !== null) lines.push(["c", ""]); sec = s.section; lines.push(["c", "# --- " + sec]); }
+      if (s.help) lines.push(["c", "# " + s.help]);
+      var v = Object.prototype.hasOwnProperty.call(over, s.name) ? over[s.name] : (s.example || "");
+      if (s.secret) v = "";
+      var val = '"' + String(v == null ? "" : v).replace(/["\\$`]/g, "\\$&") + '"';
+      var left = s.name + "=" + val;
+      var note = s.secret ? "secret: typed at the prompt, never saved" : (notes[s.name] || s.comment || "");
+      lines.push(["kv", s.name, val, note ? (left.length < pad ? " ".repeat(pad - left.length) : "  ") + "# " + note : ""]);
+    });
+    return lines;
+  }
+  function renderConf() {
+    var lines = confLines();
+    var html = lines.map(function (l) {
+      if (l[0] === "c") return '<span class="l">' + (l[1] ? '<span class="c">' + esc(l[1]) + "</span>" : "") + "</span>";
+      return '<span class="l"><span class="k">' + esc(l[1]) + "</span>=" + '<span class="v">' + esc(l[2]) + "</span>" + (l[3] ? '<span class="c">' + esc(l[3]) + "</span>" : "") + "</span>";
+    }).join("\n");
+    $("conf-out").innerHTML = html;
+    $("conf-name").textContent = host() + ".conf";
+    $("conf-lines").textContent = lines.length + " lines";
+    $("conf-intro").textContent = "Save it next to the scripts as " + host() + ".conf. It never holds secrets: tokens are typed at the prompt. Filled configs are ignored by git.";
+  }
+
+  function cmd(text, intro, expect) { return { text: text, intro: intro, expect: expect }; }
+  function renderCommands() {
+    var c = [], H = host(), U = login();
+    var ts = has("tailscale");
+    var addr = ts ? "the server's Tailscale IP (tailscale ip -4 on the server)" : ipTokens().good.length ? "the server's IP" : has("cloudflared") ? "your tunnel SSH hostname" : "the server's IP";
+    c.push(cmd(state.machine === "vps" ? "# Provider panel: Console, VNC or Rescue" : "# IPMI / iDRAC / iLO / KVM, or a screen and keyboard",
+      "Before you start, open the console and check you can log in there. It is your way back in if SSH locks you out.",
+      "A login prompt on the console."));
+    c.push(cmd("git clone " + REPO + ".git\ncd server-prep",
+      'Log in to the new server (<code>ssh &lt;user&gt;@&lt;server-ip&gt;</code> with the details from your provider). No git? <code>sudo apt install -y git</code>. No sudo yet on Debian? See <a href="' + abs("server-preconfig.md") + '">server-preconfig.md</a>, section 1.',
+      "A server-prep folder with the scripts."));
+    c.push(cmd("sudo ./server-preconfig.sh --hostname " + H + (state.machine === "vps" ? " --static-ip keep" : "") + (ts ? "" : " --no-tailscale"),
+      state.machine === "vps" ? "First setup. On a VPS the provider's network config stays as it is:"
+        : "First setup. On Debian it saves the current IP so it survives reboots, if it isn't saved yet. On Ubuntu (netplan) it leaves the network alone: set a DHCP reservation on your router.",
+      "The checks at the end show 0 FAIL" + (ts ? ". Open the Tailscale login link it prints." : ".")));
+    c.push(cmd("sudo reboot\n# about 2 minutes later, log in again, then:\nsudo ./server-preconfig.sh --check", "Prove it comes back on its own:", "Network, SSH" + (ts ? " and Tailscale" : "") + " are back without help."));
+    c.push(cmd("sudo ./server-audit.sh", "Baseline audit. It changes nothing:", "A score and a list of PASS / WARN / FAIL."));
+    var keyHelp = "ADMIN_PUBKEY: on your own computer run cat ~/.ssh/id_ed25519.pub (no key yet? ssh-keygen -t ed25519) and paste the whole line. Never the file without .pub.";
+    if (panelOn()) keyHelp += " PANEL_PUBKEY: the public part of the key " + panelLabel(state.panel) + " uses for servers" + (state.panel === "coolify" ? " (Keys & Tokens, Private Keys, your key, Public Key)." : ".");
+    if (has("public")) keyHelp += " PANEL_IP: run curl -4 ifconfig.me on the panel server.";
+    c.push(cmd("nano " + H + ".conf", "Save the config file below (paste it, then Ctrl+O, Enter, Ctrl+X) and fill in:", keyHelp));
+    c.push(cmd("sudo ./server-prep.sh --config " + H + ".conf --dry-run", "Preview every change:", "The plan, with nothing changed."));
+    c.push(cmd("sudo ./server-prep.sh --config " + H + ".conf", "Apply it. Questions are pre-filled from the file, Enter keeps them:",
+      "At SSH SAFETY CHECK, keep this terminal open. On your own computer open a new terminal and run ssh -p " + SSH_PORT + " " + U + "@<address>, with " + addr + ". Type y only if that login works, n to undo the SSH change now. With no answer, the SSH change undoes itself after 10 minutes."));
+    c.push(cmd("sudo ./server-audit.sh", "Final audit:", "0 FAIL. The audit report is server-audit-<host>-<date>.txt in this folder. server-prep's own report, with every change, is in /root/server-prep-reports."));
+    if (panelOn()) {
+      var where = { coolify: "In Coolify: Servers, + Add.", dokploy: "In Dokploy, add a remote server.", openship: "In Openship: add a server, then Test Connection." }[state.panel] || "In your panel, add the server.";
+      var text = ts ? "# " + where + "\n# Host: the server's Tailscale IP (tailscale ip -4)\n# Port: " + SSH_PORT + "    User: root    Key: the panel's key"
+        : has("public") ? "# " + where + "\n# Host: the server's public IP\n# Port: " + SSH_PORT + "    User: root    Key: the panel's key"
+        : "# SSH through a tunnel needs your panel's Cloudflare Tunnel support.\n# Coolify: read docs/cloudflare-tunnel.md first. Simpler: also tick Tailscale.";
+      c.push(cmd(text, "Connect it to " + esc(panelLabel(state.panel)) + ":",
+        "The panel validates the server. If not, check that PANEL_PUBKEY is the panel's key, that the panel server is on the same tailnet (or its IP is PANEL_IP), and port " + SSH_PORT + " with user root. On the server, sudo journalctl -u ssh -n 30 shows why a login was refused."));
+    }
+    $("term-host").textContent = (user() || "you") + "@" + H;
+    $("cmds").innerHTML = c.map(function (x, i) {
+      var pre = x.text.split("\n").map(function (l) { return /^#/.test(l) ? '<span class="c">' + esc(l) + "</span>" : '<span class="ln">' + esc(l) + "</span>"; }).join("\n");
+      return '<li><div class="cmd-body"><p>' + x.intro + '</p><div class="code"><button class="copy" type="button" data-copy="cmd-' + i + '" aria-label="Copy command ' + (i + 1) + '">' + icon("copy") + 'Copy</button><pre id="cmd-' + i + '" role="group" tabindex="0" aria-label="Command ' + (i + 1) + '">' + pre + '</pre></div><p class="expect">' + icon("check") + "<span>Expect: " + esc(x.expect) + "</span></p></div></li>";
+    }).join("");
+  }
+
+  var OPTIONAL = { INSTALL_AUDITD: 1, INSTALL_RKHUNTER: 1, INSTALL_AIDE: 1, INSTALL_ENDLESSH: 1, INSTALL_TELEGRAF: 1, TELEGRAM_ENABLE: 1 };
+  function toggle(gate, label, aria) {
+    return '<label class="toggle"><input type="checkbox" data-gate="' + gate + '" id="gate-' + gate + '"' + (gates[gate] ? " checked" : "") + ' aria-label="' + esc(aria) + '"> ' + esc(label) + "</label>";
+  }
+  function unitHtml(i, name, title, detail, run, why, ctl) {
+    return '<div class="unit" data-run="' + (run ? "yes" : "no") + '"><span class="u-num"><i aria-hidden="true"></i><b>' + String(i + 1).padStart(2, "0") + '</b></span><div class="u-name"><code>' + esc(name) + "</code><b>" + esc(title) + '</b></div><div class="u-detail">' + detail + '</div><div class="u-state"><span class="pill ' + (run ? "ok" : "off") + '">' + (run ? icon("check") + "Runs" : "Skipped") + "</span>" + (why ? '<span class="why">' + esc(why) + "</span>" : "") + (ctl || "") + "</div></div>";
+  }
+  function renderSteps() {
+    $("pre-units").innerHTML = D.preconfig_steps.map(function (p, i) {
+      var run = !(p.name === "tailscale" && !has("tailscale"));
+      var why = p.name === "network" ? (state.machine === "vps" ? "VPS: left as the provider set it." : "Debian: saved so it survives reboots. Ubuntu: left to netplan.") : (run ? "" : "Skipped with --no-tailscale.");
+      return unitHtml(i, p.name, p.title, "", run, why, "");
+    }).join("");
+    $("pre-count").textContent = D.preconfig_steps.length + " steps";
+    var on = 0;
+    $("prep-units").innerHTML = D.steps.map(function (s, i) {
+      var r = stepRun(s); if (r[0]) on++;
+      var ctl = "";
+      if (s.gate && OPTIONAL[s.gate]) ctl = toggle(s.gate, "Include", "Include the " + s.name + " step");
+      if (s.name === "ips") ctl = toggle("INSTALL_FAIL2BAN", "fail2ban", "Install fail2ban") + toggle("INSTALL_CROWDSEC", "CrowdSec", "Install CrowdSec");
+      return unitHtml(i, s.name, s.title, md(s.details), r[0], r[1], ctl);
+    }).join("");
+    $("prep-count").textContent = on + " of " + D.steps.length + " run with your choices";
+  }
+
+  // ---------- audit chart ----------
+  var SEV_META = [["fail", "Can FAIL"], ["warn", "Can WARN"], ["info", "Info only"]];
+  var rows = D.audit.sections.map(function (s) {
+    var r = { title: s.title, key: s.key, fail: 0, warn: 0, info: 0, total: s.checks.length };
+    s.checks.forEach(function (c) { r[worst(c)]++; });
+    return r;
+  }).sort(function (a, b) { return b.total - a.total || b.fail - a.fail; });
+  var maxTotal = Math.max.apply(null, rows.map(function (r) { return r.total; }));
+  var scaleMax = Math.ceil(maxTotal / 3) * 3;
+  var tableView = false;
+  function renderChart() {
+    $("legend").innerHTML = SEV_META.map(function (m) { return '<span><i style="background:var(--sev-' + m[0] + ')"></i>' + m[1] + " <b>" + SEV[m[0]] + "</b></span>"; }).join("");
+    var body = $("chart-body");
+    if (tableView) {
+      body.innerHTML = '<table class="chart-table"><caption class="sr">Audit checks per area, by worst possible result</caption><thead><tr><th scope="col">Area</th><th scope="col">Can FAIL</th><th scope="col">Can WARN</th><th scope="col">Info only</th><th scope="col">Total</th></tr></thead><tbody>' +
+        rows.map(function (r) { return '<tr><th scope="row">' + esc(r.title) + "</th><td>" + r.fail + "</td><td>" + r.warn + "</td><td>" + r.info + "</td><td>" + r.total + "</td></tr>"; }).join("") + "</tbody></table>";
+      return;
+    }
+    var ticks = []; for (var t = 0; t <= scaleMax; t += 3) ticks.push(t);
+    body.innerHTML = '<div class="bars" role="list">' + rows.map(function (r) {
+      var short = r.title.replace(/ \(.*\)$/, "");
+      var segs = SEV_META.filter(function (m) { return r[m[0]] > 0; }).map(function (m) {
+        return '<span class="bseg ' + m[0] + '" tabindex="0" role="img" data-area="' + esc(short) + '" data-label="' + m[1] + '" data-n="' + r[m[0]] + '" aria-label="' + esc(short) + ": " + r[m[0]] + " " + m[1].toLowerCase() + '" style="width:' + (r[m[0]] / r.total * 100).toFixed(3) + '%"></span>';
+      }).join("");
+      return '<div class="brow" role="listitem"><span class="name" title="' + esc(r.title) + '">' + esc(short) + '</span><span class="track"><span class="stack" style="width:calc((100% - 32px) * ' + (r.total / scaleMax).toFixed(4) + ')">' + segs + '</span><span class="tip-val">' + r.total + "</span></span></div>";
+    }).join("") + '</div><div class="axis" aria-hidden="true"><span></span><span class="ticks">' + ticks.map(function (t) { return '<span style="left:' + (t / scaleMax * 100) + '%">' + t + "</span>"; }).join("") + "</span></div>";
+  }
+  function renderSevs() {
+    var copy = { fail: "a broken security basic: lowers the score and makes the audit exit with 1", warn: "worth fixing, counts half in the score", info: "context only, never counted" };
+    $("sevs").innerHTML = SEV_META.map(function (m) { return '<div class="sev card"><span class="val"><i style="background:var(--sev-' + m[0] + ')"></i>' + SEV[m[0]] + "</span><b>" + m[1] + '</b><span class="desc">' + copy[m[0]] + "</span></div>"; }).join("");
+  }
+  var tip = $("ctip");
+  function showTip(seg) {
+    var c = $("chart").getBoundingClientRect(), r = seg.getBoundingClientRect();
+    tip.innerHTML = "<b>" + esc(seg.getAttribute("data-n")) + " " + esc(seg.getAttribute("data-label").toLowerCase()) + "</b>" + esc(seg.getAttribute("data-area"));
+    tip.hidden = false;
+    var x = r.left - c.left + r.width / 2 - tip.offsetWidth / 2;
+    tip.style.left = Math.max(8, Math.min(x, c.width - tip.offsetWidth - 8)) + "px";
+    tip.style.top = (r.top - c.top - tip.offsetHeight - 8) + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+  $("chart-body").addEventListener("pointerover", function (e) { var s = e.target.closest && e.target.closest(".bseg"); if (s) showTip(s); });
+  $("chart-body").addEventListener("pointerout", function (e) { if (e.pointerType === "touch") return; if (e.target.closest && e.target.closest(".bseg")) hideTip(); });
+  document.addEventListener("pointerdown", function (e) { if (!(e.target.closest && e.target.closest(".bseg"))) hideTip(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") hideTip(); });
+  $("chart-body").addEventListener("focusin", function (e) { if (e.target.classList.contains("bseg")) showTip(e.target); });
+  $("chart-body").addEventListener("focusout", hideTip);
+  $("chart-toggle").addEventListener("click", function () {
+    tableView = !tableView; hideTip();
+    this.textContent = tableView ? "Show as chart" : "Show as table";
+    renderChart();
+  });
+
+  function renderAuditList() {
+    $("audit-lead").textContent = auditChecks + " checks in " + auditSections + " areas. It reads the effective SSH config, sees whether a port is really reachable through the firewall, and catches Docker bypassing UFW. Writes text, Markdown, JSON and TSV.";
+    $("audit-grid").innerHTML = D.audit.sections.map(function (s) {
+      return '<details class="asec"><summary><span class="tw" aria-hidden="true"></span><span class="t">' + esc(s.title) + '</span><span class="cnt">' + s.checks.length + '<span class="sr"> checks</span></span></summary><ul role="list">' + s.checks.map(function (c) {
+        return "<li><span>" + esc(c.title) + ' <code>' + esc(c.id) + '</code></span><span class="outcomes"><span class="sr">Possible results: </span>' + c.statuses.map(function (x) { return '<i class="' + x + '">' + x + "</i>"; }).join("") + "</span></li>";
+      }).join("") + "</ul></details>";
+    }).join("");
+  }
+
+  function renderRef() {
+    $("vps-table").innerHTML = '<thead><tr><th scope="col"><span class="sr">Topic</span></th><th scope="col">VPS</th><th scope="col">Dedicated or on-premise</th></tr></thead><tbody>' + D.vps_vs_dedicated.map(function (r) {
+      return '<tr><th scope="row">' + esc(r.topic) + "</th><td>" + md(r.vps) + "</td><td>" + md(r.dedicated) + "</td></tr>";
+    }).join("") + "</tbody>";
+    var links = D.guides.map(function (g) { return { href: abs(g.path), t: g.title, d: g.details }; });
+    links.push({ href: REPO + "/discussions", t: "Discussions", d: "Ask a question or share your setup." });
+    links.push({ href: REPO + "/issues", t: "Issues", d: "Report a bug or suggest an idea." });
+    links.push({ href: REPO + "/security/advisories/new", t: "Report a vulnerability", d: "Privately, never in a public issue." });
+    $("links").innerHTML = links.map(function (l) { return '<a href="' + esc(l.href) + '"><b>' + esc(l.t) + icon("arrow") + "</b><span>" + md(l.d).replace(/<a [^>]*>|<\/a>/g, "") + "</span></a>"; }).join("");
+    $("agent-cmd").textContent = "git clone " + REPO + ".git\ncd server-prep && claude\n# then type: /new-server";
+    $("foot-gen").innerHTML = "Drawn from <code>server-prep.sh</code> v" + esc(D.versions.server_prep) + " and <code>server-audit.sh</code> v" + esc(D.versions.server_audit) + " by <code>scripts/gen-data.sh</code>.";
+  }
+
+  function render(boot) {
+    $("fs-access").disabled = !panelOn();
+    $("access-hint").textContent = panelOn() ? "You can combine them. Root can log in only from these routes, and only with an SSH key." : "No panel: nothing logs in as root.";
+    var ports = portList(), alerts = alertList();
+    renderKpis(ports, alerts); renderAlerts(alerts); renderPorts(ports, boot); renderLogins(); renderCommands(); renderConf(); renderSteps();
+  }
+
+  // ---------- events ----------
+  $("controls").addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.name === "machine") state.machine = t.value;
+    else if (t.name === "panel") state.panel = t.value;
+    else if (t.name === "web") state.web = t.value;
+    else if (t.name === "access") state.access = Array.prototype.slice.call(document.querySelectorAll('input[name="access"]:checked')).map(function (x) { return x.value; });
+    render(false);
+  });
+  $("controls").addEventListener("submit", function (e) { e.preventDefault(); });
+  $("admin-ips").addEventListener("input", function (e) { state.adminIps = e.target.value; typingIp = !/\s$/.test(e.target.value); render(false); });
+  $("admin-ips").addEventListener("blur", function () { if (typingIp) { typingIp = false; render(false); } });
+  $("host").addEventListener("input", function (e) { state.host = e.target.value.trim(); render(false); });
+  $("user").addEventListener("input", function (e) { state.user = e.target.value.trim(); render(false); });
+  $("reset").addEventListener("click", function () { resetState(); syncForm(); render(false); });
+  $("prep-units").addEventListener("change", function (e) {
+    var g = e.target.getAttribute("data-gate");
+    if (!g) return;
+    gates[g] = e.target.checked;
+    render(false);
+    var again = $("gate-" + g); if (again) again.focus();
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-copy]");
+    if (!b) return;
+    var pre = $(b.getAttribute("data-copy")), text = pre.textContent;
+    if (!b._label) b._label = b.innerHTML;
+    var label = b._label;
+    clearTimeout(b._t);
+    function reset() { b._t = setTimeout(function () { b.innerHTML = label; b.removeAttribute("data-done"); }, 1600); }
+    function done() { b.innerHTML = icon("check") + "Copied"; b.setAttribute("data-done", ""); $("copy-status").textContent = "Copied to the clipboard."; reset(); }
+    function fallback() {
+      var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      b.textContent = "Selected"; $("copy-status").textContent = "Text selected: press Ctrl+C or Cmd+C to copy."; reset();
+    }
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (err) { fallback(); }
+  });
+
+  // active section in the top bar
+  if ("IntersectionObserver" in window) {
+    var navLinks = document.querySelectorAll(".topnav a[data-sec]");
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        navLinks.forEach(function (a) { if (a.getAttribute("data-sec") === en.target.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function (sec) { io.observe(sec); });
+  }
+
+  syncForm(); render(true); renderChart(); renderSevs(); renderAuditList(); renderRef();
+})();
+</script>
+</body>
+</html>

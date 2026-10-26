@@ -5,6 +5,12 @@ Highlights of each release. The full list of merged pull requests is in each
 
 ## [Unreleased]
 
+- New logo: a keyhole standing on a terminal cursor, cut out of one rounded tile, black on light and white in dark mode. In the README
+  and the setup console (with an SVG favicon that follows the browser theme). Files in `.github/assets/`.
+- New [setup console](https://exceev-consulting.github.io/server-prep/) (`site/`): pick a VPS or a dedicated
+  server, a panel (Coolify, Dokploy, Openship) and an access route, and see the open ports, who can log in, every
+  step, the commands in order and a ready config file. Its data is generated from the scripts by
+  `scripts/gen-data.sh`, and CI checks it stays in sync.
 - The `update` step also installs `vim`. Fresh Debian servers only ship `vim-tiny` (or `nano`).
 - New guide [docs/cloudflare-tunnel.md](docs/cloudflare-tunnel.md): publish apps through a Cloudflare Tunnel
   run from Coolify's Cloudflared template, close 80/443, and put a Zero Trust login in front of admin tools.
