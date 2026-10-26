@@ -25,11 +25,14 @@ git clone https://github.com/exceev-consulting/server-prep.git && cd server-prep
 
 ## Before you open a pull request
 
-1. **Syntax and lint** (CI runs the same):
+1. **Syntax, lint and regression checks**:
    ```bash
-   bash -n server-prep.sh server-audit.sh server-preconfig.sh scripts/*.sh
-   shellcheck -S warning server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh scripts/*.sh
+   for script in server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh scripts/*.sh tests/*.sh; do
+       bash -n "$script" || exit 1
+   done
+   shellcheck -S warning server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh scripts/*.sh tests/*.sh
    scripts/gen-data.sh --check   # the setup console's data matches the scripts (needs jq)
+   bash tests/exit-status.sh     # argument and final-status checks; no system changes
    ```
 2. **Dry run** on a test server, then a real run if your change modifies the system:
    ```bash

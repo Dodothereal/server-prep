@@ -41,10 +41,11 @@ Your infrastructure goes in **`CLAUDE.local.md`**: panel host, Tailscale and adm
 - **Panel-agnostic:** the panel is `PANEL` / `PANEL_PUBKEY` / `PANEL_ACCESS` / `PANEL_IP` (old `COOLIFY_*` names are mapped at load). Messages use `${PANEL_LABEL}`. Panel-specific behaviour must be guarded by `[[ ${PANEL,,} == <name> ]]`.
 - **Changes need matching updates in:** `server-prep.conf.example`, the README step table, and an audit check (INFO when optional).
 - **Checks after editing:**
-  - Syntax: `bash -n server-prep.sh server-audit.sh`.
+  - Syntax: `for script in server-prep.sh server-audit.sh server-preconfig.sh extras/github-runners/*.sh scripts/*.sh tests/*.sh; do bash -n "$script" || exit 1; done`.
   - Dry run: `sudo ./server-prep.sh --config <test.conf> --dry-run --only <step>`. The user has to run it, since it needs sudo.
   - Site data: `scripts/gen-data.sh` after changing a step, a setting, an audit check or those README tables. CI runs `scripts/gen-data.sh --check`.
-  - Lint: `shellcheck -S warning server-*.sh extras/github-runners/*.sh scripts/*.sh`. CI runs it on every push and PR (`.github/workflows/lint.yml`), so keep it clean. It is not installed locally: download the static binary from the ShellCheck releases into the scratchpad.
+  - Lint: `shellcheck -S warning server-*.sh extras/github-runners/*.sh scripts/*.sh tests/*.sh`. CI runs it on every push and PR (`.github/workflows/lint.yml`), so keep it clean. It is not installed locally: download the static binary from the ShellCheck releases into the scratchpad.
+  - Exit status: `bash tests/exit-status.sh` checks argument validation and the real main function with host-changing calls stubbed out.
   - Changelog: user-visible changes add a line under `## [Unreleased]` in `CHANGELOG.md`, in the same PR.
   - Releases: never bump `PREP_VERSION` or tag by hand. The user runs **Actions → release → Run workflow** (`gh workflow run release -f bump=patch|minor|major`): `.github/workflows/release.yml` bumps the version, moves `[Unreleased]` under it via a self-merged PR, tags and publishes (see CONTRIBUTING.md).
   - Git: every fix or improvement goes on a branch + PR (`gh pr create`, with a label); never push to `main`.
