@@ -7,6 +7,7 @@ Highlights of each release. The full list of merged pull requests is in each
 
 - `server-prep.sh` exits 1 when a step fails or the run stops early, and an unknown `--only` or
   `--skip` name exits 2 with the valid steps.
+- Avoid an unset-variable error when `server-prep.sh` is passed to bash through standard input or `bash -c`.
 - [Wiki](https://github.com/exceev-consulting/server-prep/wiki): beginner path, concepts, panels, troubleshooting, FAQ,
   glossary, architecture and roadmap. Its source lives in `wiki/` and `.github/workflows/wiki.yml` publishes it.
 - Discussions forms for Q&A, Ideas and Show and tell (setups and compatibility reports).

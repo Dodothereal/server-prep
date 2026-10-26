@@ -17,7 +17,7 @@ set -u   # no pipefail: "cmd | grep -q" would turn SIGPIPE into false negatives
 shopt -s lastpipe   # "... | write_file" must run in this shell to record changes
 
 PREP_VERSION="1.1.1"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 TS="$(date +%Y%m%d_%H%M%S)"
 HOST_SHORT="$(hostname -s)"
 
@@ -1920,7 +1920,7 @@ main() {
 }
 
 # Run only when executed, so the test can load the functions without starting a run.
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+if [[ "${BASH_SOURCE[0]:-$0}" == "$0" ]]; then
     main "$@"
     exit $?
 fi
