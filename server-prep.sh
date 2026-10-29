@@ -166,7 +166,7 @@ set_panel_label() {   # display name used in questions, notes and the report
 }
 set_panel_label
 # /dev/tty can have readable permissions without a controlling terminal.
-if [[ $INTERACTIVE -eq 1 ]] && ! { : < /dev/tty; } 2>/dev/null; then
+if [[ $INTERACTIVE -eq 1 ]] && ! { true < /dev/tty; } 2>/dev/null; then
     echo "No terminal: use --yes with --config" >&2
     exit 2
 fi

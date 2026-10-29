@@ -81,6 +81,16 @@ expect_no_terminal() {   # expect_no_terminal WANT_STATUS WANT_OUTPUT ARGS...
 expect_no_terminal 2 'No terminal: use --yes with --config' --dry-run
 expect_no_terminal 0 'loaded: INTERACTIVE=0' --dry-run --yes
 
+# A failed terminal open must keep the same message and status in POSIX mode.
+status=0
+out="$(POSIXLY_CORRECT=1 setsid --wait bash "$tmp/load-script" "$SCRIPT" --dry-run </dev/null 2>&1)" || status=$?
+if [[ "$status" -ne 2 || "$out" != 'No terminal: use --yes with --config' ]]; then
+    printf 'not ok: no terminal in POSIX mode exited %s, want 2 and the no-terminal message\n' "$status"
+    printf '%s\n' "$out" >&2
+    exit 1
+fi
+printf 'ok: no terminal in POSIX mode exits 2 with the expected message\n'
+
 # Redirected stdin must still work when /dev/tty can be opened (curl | bash).
 # script allocates a controlling terminal; the child explicitly closes its
 # terminal stdin so a guard based only on [[ -t 0 ]] would fail this regression.
